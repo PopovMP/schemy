@@ -189,14 +189,26 @@ class Interpreter {
         return res;
     }
     evalDefine(expr, env) {
+        if (Array.isArray(expr[1])) {
+            const name = expr[1][0];
+            const lambda = ['lambda', expr[1].slice(1), expr[2]];
+            const proc = this.evalExpr(lambda, env);
+            this.addToEnv(name, proc, 'closure', env);
+        }
+        else {
+            const name = expr[1];
+            const value = this.evalExpr(expr[2], env);
+            this.addToEnv(name, value, 'define', env);
+        }
+    }
+    evalLambda(expr, env) {
         if (expr.length !== 3) {
-            throw 'Error: \'define\' requires a symbol and an expression.';
+            throw 'Error: Improper function. Given: ' + Printer.stringify(expr);
         }
-        if (typeof expr[1] !== 'string') {
-            throw 'Error: \'define\' requires a symbol. Given: ' + Printer.stringify(expr[1]);
+        if (!Array.isArray(expr[1])) {
+            throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr);
         }
-        const value = this.evalExpr(expr[2], env);
-        this.addToEnv(expr[1], value, 'define', env);
+        return ['closure', expr[1], expr.slice(2), env];
     }
     evalBegin(expr, env) {
         if (expr.length === 1) {
@@ -214,15 +226,6 @@ class Interpreter {
             this.clearEnv('#scope', env);
         }
         return res;
-    }
-    evalLambda(expr, env) {
-        if (expr.length !== 3) {
-            throw 'Error: Improper function. Given: ' + Printer.stringify(expr);
-        }
-        if (!Array.isArray(expr[1])) {
-            throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr);
-        }
-        return ['closure', expr[1], expr.slice(2), env];
     }
     evalIf(expr, env) {
         if (expr.length !== 4) {

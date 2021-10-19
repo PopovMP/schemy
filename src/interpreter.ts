@@ -245,19 +245,36 @@ class Interpreter {
 		return res
 	}
 
-	// (define symbol expr) ; variable definition
+	// (define symbol expr)      ; Variable definition
+	// (define (symbol p*) expr) ; Procedure definition
 	private evalDefine(expr: any[], env: any[]): void {
+		if ( Array.isArray(expr[1]) ) {
+			// Define procedure
+			const name: string  = expr[1][0]
+			const lambda: any[] = ['lambda', expr[1].slice(1), expr[2]]
+			const proc: any     = this.evalExpr(lambda, env)
+			this.addToEnv(name, proc, 'closure', env)
+		}
+		else {
+			// Define variable
+			const name: string = expr[1]
+			const value: any   = this.evalExpr(expr[2], env)
+			this.addToEnv(name, value, 'define', env)
+		}
+	}
+
+	// (lambda (par*) expr)
+	private evalLambda(expr: any[], env: any[]): any[] {
 		if (expr.length !== 3) {
-			throw 'Error: \'define\' requires a symbol and an expression.'
+			throw 'Error: Improper function. Given: ' + Printer.stringify(expr)
 		}
 
-		if (typeof expr[1] !== 'string') {
-			throw 'Error: \'define\' requires a symbol. Given: ' + Printer.stringify(expr[1])
+		if (!Array.isArray(expr[1])) {
+			throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr)
 		}
 
-		const value: any = this.evalExpr(expr[2], env)
-
-		this.addToEnv(expr[1], value, 'define', env)
+		// (closure (par*) body env)
+		return ['closure', expr[1], expr.slice(2), env]
 	}
 
 	// (begin expr+)
@@ -281,20 +298,6 @@ class Interpreter {
 		}
 
 		return res
-	}
-
-	// (lambda (par*) expr)
-	private evalLambda(expr: any[], env: any[]): any[] {
-		if (expr.length !== 3) {
-			throw 'Error: Improper function. Given: ' + Printer.stringify(expr)
-		}
-
-		if (!Array.isArray(expr[1])) {
-			throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr)
-		}
-
-		// (closure (par*) body env)
-		return ['closure', expr[1], expr.slice(2), env]
 	}
 
 	// (if e1 e2 e3)
