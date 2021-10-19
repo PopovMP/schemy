@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "incremental": true,
+    "target": "esnext",
+    "strict": true,
+    "removeComments": true,
+    "sourceMap": false,
+    "outFile": "./public/js/schemy.js"
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
