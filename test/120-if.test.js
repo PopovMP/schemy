@@ -46,4 +46,14 @@ describe('if', function () {
 	it('faulty condition returns builtin function', function () {
 		assert.strictEqual(schemy.evaluate('((if #f + -) 4 3)'), 1)
 	})
+
+	it('(if #f 1) -> undefined', function () {
+		assert.strictEqual(schemy.evaluate('(if #f 1)'), undefined)
+	})
+
+
+	it('(define a (if #f 1)) -> throws', function () {
+		assert.strictEqual(schemy.evaluate('(define a (if #f 1))'),
+			'Error: cannot set unspecified value to symbol: a.')
+	})
 })

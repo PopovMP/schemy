@@ -6,7 +6,7 @@ class Options {
 
 	constructor() {
 		this.printer      = console.log
-		this.libs         = ['core-lib', 'ext-lib', 'list-lib']
+		this.libs         = ['core-lib', 'ext-lib', 'list-lib', 'string-lib']
 		this.extContext   = this
 		this.extFunctions = {}
 	}

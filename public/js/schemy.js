@@ -12,6 +12,7 @@ class Interpreter {
         'if': this.evalIf,
         'display': this.evalDisplay,
         'newline': this.evalNewline,
+        'print': this.evalPrint,
         'quote': this.evalQuote,
         'quasiquote': this.evalQuasiquote,
         'parse': this.evalParse,
@@ -228,13 +229,12 @@ class Interpreter {
         return res;
     }
     evalIf(expr, env) {
-        if (expr.length !== 4) {
-            throw 'Error: \'if\' requires 3 arguments. Given: ' + (expr.length - 1);
-        }
-        const e1 = this.evalExpr(expr[1], env);
-        return typeof e1 === 'boolean' && !e1
-            ? this.evalExpr(expr[3], env)
-            : this.evalExpr(expr[2], env);
+        const test = this.evalExpr(expr[1], env);
+        return typeof test !== 'boolean' || test
+            ? this.evalExpr(expr[2], env)
+            : expr.length === 4
+                ? this.evalExpr(expr[3], env)
+                : undefined;
     }
     evalAnd(expr, env) {
         if (expr.length !== 3) {
@@ -261,6 +261,21 @@ class Interpreter {
     evalNewline(expr, env) {
         this.evalArgs([], expr, env);
         this.options.printer('\r\n');
+    }
+    evalPrint(expr, env) {
+        if (expr.length === 1) {
+            this.options.printer('\r\n');
+        }
+        else if (expr.length === 2) {
+            const text = Printer.stringify(this.evalExpr(expr[1], env));
+            this.options.printer(text + '\r\n');
+        }
+        else {
+            const text = this.mapExprList(expr.slice(1), env)
+                .map(Printer.stringify)
+                .join(' ');
+            this.options.printer(text + '\r\n');
+        }
     }
     evalQuote(expr) {
         if (expr.length !== 2) {
@@ -391,6 +406,8 @@ class LibManager {
                 return new ExtLib(inter);
             case 'list-lib':
                 return new ListLib(inter);
+            case 'string-lib':
+                return new StringLib(inter);
             default:
                 throw 'Error: Unknown lib: ' + libName;
         }
@@ -448,7 +465,7 @@ class Options {
     extFunctions;
     constructor() {
         this.printer = console.log;
-        this.libs = ['core-lib', 'ext-lib', 'list-lib'];
+        this.libs = ['core-lib', 'ext-lib', 'list-lib', 'string-lib'];
         this.extContext = this;
         this.extFunctions = {};
     }
@@ -929,5 +946,29 @@ class ListLib {
     cdr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
         return obj[1];
+    }
+}
+class StringLib {
+    inter;
+    methods = {
+        'string': this.string,
+    };
+    builtinFunc;
+    builtinHash = {};
+    constructor(interpreter) {
+        this.inter = interpreter;
+        this.builtinFunc = Object.keys(this.methods);
+        for (const func of this.builtinFunc) {
+            this.builtinHash[func] = true;
+        }
+    }
+    libEvalExpr(expr, env) {
+        return this.methods[expr[0]].call(this, expr, env);
+    }
+    string(expr, _env) {
+        if (expr.length !== 2) {
+            throw "Error: 'string' requires 1 argument. Given: " + (expr.length - 1);
+        }
+        return expr[1];
     }
 }

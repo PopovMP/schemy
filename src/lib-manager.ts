@@ -19,6 +19,8 @@ class LibManager {
 				return new ExtLib(inter)
 			case 'list-lib'   :
 				return new ListLib(inter)
+			case 'string-lib'   :
+				return new StringLib(inter)
 			default:
 				throw 'Error: Unknown lib: ' + libName
 		}

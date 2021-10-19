@@ -63,14 +63,16 @@ const examplesList = [
         name: "Hanoi tower",
         code: `;; Hanoi tower
 
-(const move (from to)
+(define (move from to)
     (print "Move disk from" from "to" to) )
 
-(const solve (n from to through)
-    (when (> n 0)
-          (solve (- n 1) from through to)
-          (move from to)
-          (solve (- n 1) through to from) ))
+(define (solve n from to through)
+    (if (> n 0)
+        (begin
+            (solve (- n 1) from through to)
+            (move from to)
+            (solve (- n 1) through to from))
+        "Ready"))
 
 (solve 4 "A" "C" "B")
 `
@@ -146,18 +148,18 @@ const examplesList = [
 `   },
 
     {
-        name: "EASL interprets EASL",
-        code: `;; EASL source code in a string
-(const src "
-    (const lst '(1 2 3 4 5 6 7))
-    (const len (list-length lst))
-    (* 6 len)
+        name: "Schemy interprets Schemy",
+        code: `;; Schemy source code in a string
+
+(define src "
+    (define lst '(6 7))
+    (* (car lst) (cdr lst))
 " )
 
-(const ilc (parse src)) ; Parse the source code to intermediate language
-(const res (eval  ilc)) ; Eval the intermediate language
+(define ilc (parse src)) ; Parse the source code to intermediate language
+(define res (eval  ilc)) ; Eval the intermediate language
 
-(print "The answer is:" res)
+(display res)
 `
     },
 
@@ -296,54 +298,52 @@ const examplesList = [
         name: "Lambda Calculus",
         code: `;; Lambda Calculus
 
-;; Lambda Calculus
-
 ;; Boolean logic
 
-(const TRUE  (λ (x) (λ (y) x)))
-(const FALSE (λ (x) (λ (y) y)))
-(const NOT   (λ (p) ((p FALSE) TRUE) ))
-(const AND   (λ (p) (λ (q) ((p q) p) )))
-(const OR    (λ (p) (λ (q) ((p p) q) )))
-(const IF    (λ (p) (λ (x) (λ (y) ((p x) y) )))) 
+(define TRUE  (λ (x) (λ (y) x)))
+(define FALSE (λ (x) (λ (y) y)))
+(define NOT   (λ (p) ((p FALSE) TRUE) ))
+(define AND   (λ (p) (λ (q) ((p q) p) )))
+(define OR    (λ (p) (λ (q) ((p p) q) )))
+(define IF    (λ (p) (λ (x) (λ (y) ((p x) y) )))) 
 
 ;; Alonso Church numbers representation
 
-(const zero  (λ (f) (λ (x) x )))
-(const one   (λ (f) (λ (x) (f x) )))
-(const two   (λ (f) (λ (x) (f (f x)) )))
-(const three (λ (f) (λ (x) (f (f (f x))) )))
-(const four  (λ (f) (λ (x) (f (f (f (f x)))) )))
-(const five  (λ (f) (λ (x) (f (f (f (f (f x))))) )))
-(const six   (λ (f) (λ (x) (f (f (f (f (f (f x)))))) )))
-(const seven (λ (f) (λ (x) (f (f (f (f (f (f (f x))))))) )))
-(const eight (λ (f) (λ (x) (f (f (f (f (f (f (f (f x)))))))) )))
-(const nine  (λ (f) (λ (x) (f (f (f (f (f (f (f (f (f x))))))))) )))
-(const ten   (λ (f) (λ (x) (f (f (f (f (f (f (f (f (f (f x)))))))))) )))
+(define zero  (λ (f) (λ (x) x )))
+(define one   (λ (f) (λ (x) (f x) )))
+(define two   (λ (f) (λ (x) (f (f x)) )))
+(define three (λ (f) (λ (x) (f (f (f x))) )))
+(define four  (λ (f) (λ (x) (f (f (f (f x)))) )))
+(define five  (λ (f) (λ (x) (f (f (f (f (f x))))) )))
+(define six   (λ (f) (λ (x) (f (f (f (f (f (f x)))))) )))
+(define seven (λ (f) (λ (x) (f (f (f (f (f (f (f x))))))) )))
+(define eight (λ (f) (λ (x) (f (f (f (f (f (f (f (f x)))))))) )))
+(define nine  (λ (f) (λ (x) (f (f (f (f (f (f (f (f (f x))))))))) )))
+(define ten   (λ (f) (λ (x) (f (f (f (f (f (f (f (f (f (f x)))))))))) )))
 
 ;; Algebra 
 
-(const succ     (λ (n) (λ (f) (λ (x) (f ((n f) x)) ))))
-(const pred     (λ (n) (λ (f) (λ (x) (((n (λ (g) (λ (h) (h (g f))))) (λ (u) x)) (λ (u) u)) ))))
+(define succ     (λ (n) (λ (f) (λ (x) (f ((n f) x)) ))))
+(define pred     (λ (n) (λ (f) (λ (x) (((n (λ (g) (λ (h) (h (g f))))) (λ (u) x)) (λ (u) u)) ))))
 
-(const add      (λ (m) (λ (n) ((m succ) n) )))
-(const sub      (λ (m) (λ (n) ((n pred) m) )))
+(define add      (λ (m) (λ (n) ((m succ) n) )))
+(define sub      (λ (m) (λ (n) ((n pred) m) )))
 
-(const mult     (λ (m) (λ (n) (λ (f) (m (n f)) ))))
-(const power    (λ (m) (λ (n) (n m) )))
+(define mult     (λ (m) (λ (n) (λ (f) (m (n f)) ))))
+(define power    (λ (m) (λ (n) (n m) )))
 
-(const zero?    (λ (n) ((n (λ (x) FALSE)) TRUE) ))
-(const lte?     (λ (m) (λ (n) (zero? ((sub m) n)) )))
+(define zero?    (λ (n) ((n (λ (x) FALSE)) TRUE) ))
+(define lte?     (λ (m) (λ (n) (zero? ((sub m) n)) )))
 
 ;; Converts a Church number to an integer
-(const int  (λ (cn) ((cn (λ (n) (+ n 1))) 0)))
+(define int  (λ (cn) ((cn (λ (n) (+ n 1))) 0)))
 
 ;; Converts a Church boolean to bool
-(const bool (λ (cb) ((cb true) false) ))
+(define bool (λ (cb) ((cb true) false) ))
 
 ;; Examples
 (print "one =" (int one))
-(const forty-two ((add ((mult ten) four)) two))
+(define forty-two ((add ((mult ten) four)) two))
 (print "forty-one   =" (int (pred forty-two)))
 (print "forty-two   =" (int forty-two))
 (print "forty-three =" (int (succ forty-two)))
@@ -375,20 +375,19 @@ const examplesList = [
 (print)
 
 ;; Factorial
-(const fac (λ (n) ((((IF ((lte? n) one))
+(define fac (λ (n) ((((IF ((lte? n) one))
                      (λ () one))
                      (λ () ((mult n) (fac (pred n))))))))
 
 (print "factorial 5 =" (int (fac five)))
 
 ;; Fibonacci
-(const fib (λ (n) ((((IF ((lte? n) one))
+(define fib (λ (n) ((((IF ((lte? n) one))
                      (λ () one))
                      (λ () ((add (fib ((sub n) one)))
                                  (fib ((sub n) two))))))))
 
 (print "Fibonacci 9 =" (int (fib nine)))
-
 `
     },
 

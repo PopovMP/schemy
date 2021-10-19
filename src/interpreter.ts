@@ -13,6 +13,7 @@ class Interpreter {
 
 		'display'   : this.evalDisplay,
 		'newline'   : this.evalNewline,
+		'print'     : this.evalPrint,
 
 		'quote'     : this.evalQuote,
 		'quasiquote': this.evalQuasiquote,
@@ -300,17 +301,16 @@ class Interpreter {
 		return res
 	}
 
-	// (if e1 e2 e3)
+	// (if test then else)
+	// (if test then)
 	private evalIf(expr: any[], env: any[]): any {
-		if (expr.length !== 4) {
-			throw 'Error: \'if\' requires 3 arguments. Given: ' + (expr.length - 1)
-		}
+		const test: any = this.evalExpr(expr[1], env)
 
-		const e1: any = this.evalExpr(expr[1], env)
-
-		return typeof e1 === 'boolean' && !e1
-			? this.evalExpr(expr[3], env)
-			: this.evalExpr(expr[2], env)
+		return typeof test !== 'boolean' || test
+			? this.evalExpr(expr[2], env)
+			: expr.length === 4
+				? this.evalExpr(expr[3], env)
+				: undefined
 	}
 
 	// (and e1 e2)
@@ -351,6 +351,23 @@ class Interpreter {
 		this.evalArgs([], expr, env)
 
 		this.options.printer('\r\n')
+	}
+
+	// (print expr1 expr2 ...)
+	private evalPrint(expr: any[], env: any[]): void {
+		if (expr.length === 1) {
+			this.options.printer('\r\n')
+		}
+		else if (expr.length === 2) {
+			const text: string = Printer.stringify(this.evalExpr(expr[1], env))
+			this.options.printer(text + '\r\n')
+		}
+		else {
+			const text: string = this.mapExprList(expr.slice(1), env)
+				.map(Printer.stringify)
+				.join(' ')
+			this.options.printer(text + '\r\n')
+		}
 	}
 
 	// (quote obj) => obj
