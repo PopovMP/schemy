@@ -199,7 +199,7 @@ class Interpreter {
 	}
 
 	// (proc arg*)
-	// ((lambda (par*) expr) arg*)
+	// ((lambda (par*) expr+) arg*)
 	private evalApplication(expr: any[], env: any[]): any {
 		const proc: string | any[]    = expr[0]
 		const isNamed: boolean        = typeof proc === 'string'
@@ -251,7 +251,7 @@ class Interpreter {
 		if ( Array.isArray(expr[1]) ) {
 			// Define procedure
 			const name: string  = expr[1][0]
-			const lambda: any[] = ['lambda', expr[1].slice(1), expr[2]]
+			const lambda: any[] = ['lambda', expr[1].slice(1), ...expr.slice(2)]
 			const proc: any     = this.evalExpr(lambda, env)
 			this.addToEnv(name, proc, 'closure', env)
 		}
@@ -265,7 +265,7 @@ class Interpreter {
 
 	// (lambda (par*) expr)
 	private evalLambda(expr: any[], env: any[]): any[] {
-		if (expr.length !== 3) {
+		if (expr.length < 3) {
 			throw 'Error: Improper function. Given: ' + Printer.stringify(expr)
 		}
 

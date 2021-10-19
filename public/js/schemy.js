@@ -191,7 +191,7 @@ class Interpreter {
     evalDefine(expr, env) {
         if (Array.isArray(expr[1])) {
             const name = expr[1][0];
-            const lambda = ['lambda', expr[1].slice(1), expr[2]];
+            const lambda = ['lambda', expr[1].slice(1), ...expr.slice(2)];
             const proc = this.evalExpr(lambda, env);
             this.addToEnv(name, proc, 'closure', env);
         }
@@ -202,7 +202,7 @@ class Interpreter {
         }
     }
     evalLambda(expr, env) {
-        if (expr.length !== 3) {
+        if (expr.length < 3) {
             throw 'Error: Improper function. Given: ' + Printer.stringify(expr);
         }
         if (!Array.isArray(expr[1])) {

@@ -19,6 +19,10 @@ describe('lambda', function () {
 		assert.strictEqual(schemy.evaluate('((lambda (a) a) 5)'), 5)
 	})
 
+	it('((lambda (a) 1 2 a) 5) → 5', function () {
+		assert.strictEqual(schemy.evaluate('((lambda (a) 1 2 a) 5)'), 5)
+	})
+
 	it('((lambda (a) (* 2 a)) 5) → 10', function () {
 		assert.strictEqual(schemy.evaluate('((lambda (a) (* 2 a)) 5)'), 10)
 	})

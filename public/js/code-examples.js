@@ -5,21 +5,17 @@ const examplesList = [
         name: "Find the maximum of a list",
         code: `;; Find the maximum of a list recursively
 
-(define max
-  (lambda (m n)
-      (if (> m n) m n)))
+(define (max m n)
+    (if (> m n) m n))
 
-(define list-max
-  (lambda (lst)
-     (begin
-       (define loop
-         (lambda (rest acc)
-            (if (pair? rest)
-                (loop (cdr rest)
-                      (max (car rest) acc))
-                acc)))
+(define (list-max lst)
+    (define (loop rest acc)
+        (if (pair? rest)
+            (loop (cdr rest)
+                  (max (car rest) acc))
+            acc))
 
-       (loop lst (car lst)))))
+    (loop lst (car lst)))
 
 (define lst (list 2 5 1))
 (display (list-max lst))
@@ -30,42 +26,35 @@ const examplesList = [
         name: "Eliminate consecutive duplicates",
         code: `;; Eliminate consecutive duplicates
 
-(define list-reverse
-  (lambda (lst)
-     (begin
-       (define loop
-         (lambda (rest acc)
-            (if (pair? rest)
-                (loop (cdr rest)
-                      (cons (car rest) acc))
-                acc)))
-       (loop lst (list)))))
+(define (list-reverse lst)
+    (define (loop rest acc)
+        (if (pair? rest)
+            (loop (cdr rest)
+                  (cons (car rest) acc))
+            acc))
+    (loop lst (list)))
 
-(define list-remove-duplicates
-  (lambda (lst)
-     (begin
-       (define loop
-         (lambda (rest last acc)
-            (if (pair? rest)
-                (if (eq? (car rest) last)
-                    (loop (cdr rest) last acc)
-                    (loop (cdr rest)
-                          (car rest)
-                          (cons (car rest) acc)))
-                (list-reverse acc))))
-       (loop lst
-             (car lst)
-             (cons (car lst) (list))))))
+(define (list-remove-duplicates lst)
+    (define (loop rest last acc)
+        (if (pair? rest)
+            (if (eq? (car rest) last)
+                (loop (cdr rest) last acc)
+                (loop (cdr rest)
+                      (car rest)
+                      (cons (car rest) acc)))
+            (list-reverse acc)))
+    (loop lst
+          (car lst)
+          (cons (car lst) (list))))
 
 (define lst (list 1 1 2 3 4 5 5 6 7 8 8 8 9 9))
 
-(define list-print
-  (lambda (lst)
-     (if (pair? lst)
-         (begin
+(define (list-print lst)
+   (if (pair? lst)
+       (begin
            (display (car lst))
            (list-print (cdr lst)))
-         (list))))
+       (list)))
 
 (list-print (list-remove-duplicates lst))
 `
