@@ -814,7 +814,13 @@ class Printer {
             loop(lst.slice(1));
         }
         const type = typeof input;
-        if (input === null || type === 'boolean' || type === 'number') {
+        if (input === null) {
+            return `'()`;
+        }
+        if (type === 'boolean') {
+            return input ? '#t' : '#f';
+        }
+        if (type === 'number') {
             return String(input);
         }
         if (type === 'string') {

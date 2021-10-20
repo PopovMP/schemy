@@ -12,6 +12,7 @@ describe('EASL design', function () {
 		it('42 -> 42', function () {
 			assert.strictEqual(schemy.evaluate(`  42  `), 42)
 		})
+
 		it('3.14 -> 3.14', function () {
 			assert.strictEqual(schemy.evaluate(`  3.14  `), 3.14)
 		})
@@ -21,15 +22,19 @@ describe('EASL design', function () {
 		it('true', function () {
 			assert.strictEqual(schemy.evaluate(`(if #t 1 0)`), 1)
 		})
+
 		it('number 0', function () {
 			assert.strictEqual(schemy.evaluate(`(if 0 1 0)`), 1)
 		})
+
 		it('number different than 0', function () {
 			assert.strictEqual(schemy.evaluate(`(if 500 1 0)`), 1)
 		})
+
 		it('empty list', function () {
 			assert.strictEqual(schemy.evaluate(`(if '() 1 2)`), 1)
 		})
+
 		it('non empty list', function () {
 			assert.strictEqual(schemy.evaluate(`(if '(1 2 3) 1 0)`), 1)
 		})
@@ -38,6 +43,12 @@ describe('EASL design', function () {
 	describe('boolean false', function () {
 		it('false', function () {
 			assert.strictEqual(schemy.evaluate(`(if #f 1 2)`), 2)
+		})
+	})
+
+	describe('and', function () {
+		it(`(and 1 '()) -> '()` , function () {
+			assert.deepStrictEqual(schemy.evaluate(`  (and 1 '())  `), [])
 		})
 	})
 

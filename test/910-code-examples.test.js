@@ -8,9 +8,9 @@ const schemy = new Schemy()
 
 describe('Code examples', function () {
 	codeExamples.forEach((e) => {
-		// it(e.name, function () {
-		// 	schemy.evaluate(e.code, {printer: interpreter_print}, eval_ready)
-		// })
+		it(e.name, function () {
+			schemy.evaluate(e.code, {printer: interpreter_print}, eval_ready)
+		})
 	})
 })
 

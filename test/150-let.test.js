@@ -19,6 +19,19 @@ describe('let', function () {
 				               (if (= n 0)
 				                   #f
 				                   (even? (- n 1))))])
-				    (even? 87)) `),                      false)
+				    (even? 87))                              `), false)
+	})
+
+	it('Letrec*', function () {
+		assert.strictEqual(schemy.evaluate(`
+				(letrec* ([p (lambda (x)
+				                (+ 1 (q (- x 1))))]
+				          [q (lambda (y)
+				                (if (= y 0)
+				                    0
+				                    (+ 1 (p (- y 1)))))]
+				          [x (p 5)]
+				          [y x])
+				    y)                                      `), 5)
 	})
 })
