@@ -7,6 +7,10 @@ class Interpreter {
         'define': this.evalDefine,
         'lambda': this.evalLambda,
         'begin': this.evalBegin,
+        'let': this.evalLet,
+        'let*': this.evalLet,
+        'letrec': this.evalLet,
+        'letrec*': this.evalLet,
         'and': this.evalAnd,
         'or': this.evalOr,
         'if': this.evalIf,
@@ -226,6 +230,32 @@ class Interpreter {
         const res = expr.length === 2
             ? this.evalExpr(expr[1], env)
             : this.evalExprList(expr.slice(1), env);
+        if (Array.isArray(res) && res[0] === 'closure') {
+            env.splice(scopeStart, 1);
+        }
+        else {
+            this.clearEnv('#scope', env);
+        }
+        return res;
+    }
+    evalLet(expr, env) {
+        if (expr.length < 3) {
+            throw 'Error: Improper \'let\' syntax. Missing body.';
+        }
+        if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0])) {
+            throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1]);
+        }
+        env.push(['#scope', 'let']);
+        const scopeStart = env.length - 1;
+        const bindings = expr[1];
+        for (const binding of bindings) {
+            const name = binding[0];
+            const value = this.evalExpr(binding[1], env);
+            this.addToEnv(name, value, 'define', env);
+        }
+        const res = expr.length === 3
+            ? this.evalExpr(expr[2], env)
+            : this.evalExprList(expr.slice(2), env);
         if (Array.isArray(res) && res[0] === 'closure') {
             env.splice(scopeStart, 1);
         }
