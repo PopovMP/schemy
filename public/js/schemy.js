@@ -809,7 +809,13 @@ class Printer {
                 }
             }
             else {
-                texts.push(space() + String(element));
+                const val = String(element);
+                const finalVal = val === 'true'
+                    ? '#t'
+                    : val === 'false'
+                        ? '#f'
+                        : val;
+                texts.push(space() + finalVal);
             }
             loop(lst.slice(1));
         }

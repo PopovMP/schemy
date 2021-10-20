@@ -50,7 +50,14 @@ class Printer {
 				}
 			}
 			else {
-				texts.push(space() + String(element))
+				const val: string = String(element)
+				const finalVal: string = val === 'true'
+					? '#t'
+					: val === 'false'
+						? '#f'
+						: val
+
+				texts.push(space() + finalVal)
 			}
 
 			loop(lst.slice(1))
@@ -58,7 +65,15 @@ class Printer {
 
 		const type = typeof input
 
-		if (input === null || type === 'boolean' || type === 'number') {
+		if (input === null) {
+			return `'()`
+		}
+
+		if (type === 'boolean') {
+			return input ? '#t' : '#f'
+		}
+
+		if (type === 'number') {
 			return String(input)
 		}
 
