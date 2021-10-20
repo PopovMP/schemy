@@ -21,7 +21,13 @@
 
 		const constants = makeKeywords('\'() #t #f #args #name')
 
-		const keywords = makeKeywords('\' ` , @ . define λ lambda begin and or if parse eval display newline')
+		const keywords = makeKeywords(
+			'\' ` , @ . define λ lambda begin ' +
+			'and or if cond case ' +
+			'display newline print ' +
+			'quote quasiquote ' +
+		    'parse eval debug raise'
+		)
 
 		const builtinFunc = makeKeywords(
 			// Core lib

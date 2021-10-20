@@ -19,9 +19,11 @@ class Interpreter {
 
 		'quote'     : this.evalQuote,
 		'quasiquote': this.evalQuasiquote,
+
 		'parse'     : this.evalParse,
 		'eval'      : this.evalEval,
 		'debug'     : this.evalDebug,
+		'raise'     : this.evalRaise,
 	}
 
 	public options: Options
@@ -415,23 +417,6 @@ class Interpreter {
 		this.options.printer('\r\n')
 	}
 
-	// (print expr1 expr2 ...)
-	private evalPrint(expr: any[], env: any[]): void {
-		if (expr.length === 1) {
-			this.options.printer('\r\n')
-		}
-		else if (expr.length === 2) {
-			const text: string = Printer.stringify(this.evalExpr(expr[1], env))
-			this.options.printer(text + '\r\n')
-		}
-		else {
-			const text: string = this.mapExprList(expr.slice(1), env)
-				.map(Printer.stringify)
-				.join(' ')
-			this.options.printer(text + '\r\n')
-		}
-	}
-
 	// (quote obj) => obj
 	private evalQuote(expr: any[]): any {
 		if (expr.length !== 2) {
@@ -468,6 +453,23 @@ class Interpreter {
 		return output
 	}
 
+	// (print expr1 expr2 ...)
+	private evalPrint(expr: any[], env: any[]): void {
+		if (expr.length === 1) {
+			this.options.printer('\r\n')
+		}
+		else if (expr.length === 2) {
+			const text: string = Printer.stringify(this.evalExpr(expr[1], env))
+			this.options.printer(text + '\r\n')
+		}
+		else {
+			const text: string = this.mapExprList(expr.slice(1), env)
+				.map(Printer.stringify)
+				.join(' ')
+			this.options.printer(text + '\r\n')
+		}
+	}
+
 	// (debug)
 	private evalDebug(_expr: any[], env: any): void {
 		this.isDebug = true
@@ -478,6 +480,11 @@ class Interpreter {
 		}
 
 		this.options.printer(`Environment:\n${envDumpList.join('\n')}\n`)
+	}
+
+	// (raise expr)
+	private evalRaise(expr: any[], env: any): void {
+		throw this.evalExpr(expr[1], env);
 	}
 
 	// (parse src)

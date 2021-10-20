@@ -20,6 +20,7 @@ class Interpreter {
         'parse': this.evalParse,
         'eval': this.evalEval,
         'debug': this.evalDebug,
+        'raise': this.evalRaise,
     };
     options;
     constructor() {
@@ -306,21 +307,6 @@ class Interpreter {
         this.evalArgs([], expr, env);
         this.options.printer('\r\n');
     }
-    evalPrint(expr, env) {
-        if (expr.length === 1) {
-            this.options.printer('\r\n');
-        }
-        else if (expr.length === 2) {
-            const text = Printer.stringify(this.evalExpr(expr[1], env));
-            this.options.printer(text + '\r\n');
-        }
-        else {
-            const text = this.mapExprList(expr.slice(1), env)
-                .map(Printer.stringify)
-                .join(' ');
-            this.options.printer(text + '\r\n');
-        }
-    }
     evalQuote(expr) {
         if (expr.length !== 2) {
             throw 'Error: \'quote\' requires 1 argument. Given: ' + (expr.length - 1);
@@ -348,6 +334,21 @@ class Interpreter {
         }
         return output;
     }
+    evalPrint(expr, env) {
+        if (expr.length === 1) {
+            this.options.printer('\r\n');
+        }
+        else if (expr.length === 2) {
+            const text = Printer.stringify(this.evalExpr(expr[1], env));
+            this.options.printer(text + '\r\n');
+        }
+        else {
+            const text = this.mapExprList(expr.slice(1), env)
+                .map(Printer.stringify)
+                .join(' ');
+            this.options.printer(text + '\r\n');
+        }
+    }
     evalDebug(_expr, env) {
         this.isDebug = true;
         const envDumpList = [];
@@ -355,6 +356,9 @@ class Interpreter {
             envDumpList.push(`${env[i][0]} = ${Printer.stringify(env[i][1]).substr(0, 500)}`);
         }
         this.options.printer(`Environment:\n${envDumpList.join('\n')}\n`);
+    }
+    evalRaise(expr, env) {
+        throw this.evalExpr(expr[1], env);
     }
     evalParse(expr, env) {
         const [scr] = this.evalArgs(['string'], expr, env);
