@@ -10,6 +10,8 @@ class Interpreter {
 		'and'       : this.evalAnd,
 		'or'        : this.evalOr,
 		'if'        : this.evalIf,
+		'cond'      : this.evalCond,
+		'case'      : this.evalCase,
 
 		'display'   : this.evalDisplay,
 		'newline'   : this.evalNewline,
@@ -138,6 +140,10 @@ class Interpreter {
 			default:
 				return typeof arg === argType
 		}
+	}
+
+	public isTrue(obj: any): boolean {
+		return typeof obj !== 'boolean' || obj
 	}
 
 	private addToEnv(symbol: string, value: any, modifier: string, env: any[]): void {
@@ -301,18 +307,6 @@ class Interpreter {
 		return res
 	}
 
-	// (if test then else)
-	// (if test then)
-	private evalIf(expr: any[], env: any[]): any {
-		const test: any = this.evalExpr(expr[1], env)
-
-		return typeof test !== 'boolean' || test
-			? this.evalExpr(expr[2], env)
-			: expr.length === 4
-				? this.evalExpr(expr[3], env)
-				: undefined
-	}
-
 	// (and e1 e2)
 	private evalAnd(expr: any[], env: any[]): any {
 		if (expr.length !== 3) {
@@ -321,9 +315,9 @@ class Interpreter {
 
 		const e1: any = this.evalExpr(expr[1], env)
 
-		return typeof e1 === 'boolean' && !e1
-			? e1
-			: this.evalExpr(expr[2], env)
+		return this.isTrue(e1)
+			? this.evalExpr(expr[2], env)
+			: e1
 	}
 
 	// (or e1 e2)
@@ -334,9 +328,77 @@ class Interpreter {
 
 		const e1: any = this.evalExpr(expr[1], env)
 
-		return typeof e1 === 'boolean' && !e1
+		return this.isTrue(e1)
+			? e1
+			: this.evalExpr(expr[2], env)
+	}
+
+	// (if test then else)
+	// (if test then)
+	private evalIf(expr: any[], env: any[]): any {
+		const test: any = this.evalExpr(expr[1], env)
+
+		return this.isTrue(test)
 			? this.evalExpr(expr[2], env)
-			: e1
+			: expr.length === 4
+				? this.evalExpr(expr[3], env)
+				: undefined
+	}
+
+	// (cond
+	//     (test expr+)
+	//     ...
+	//     (else expr+))
+	private evalCond(expr: any, env: any[]): any {
+		const clauses: any[] = expr.slice(1)
+		env.push(['#scope', 'cond'])
+
+		for (const clause of clauses) {
+			if (clause[0] === 'else' || this.isTrue( this.evalExpr(clause[0], env) )) {
+				const res: any = clause.length === 2
+					? this.evalExpr(clause[1], env)
+					: this.evalExprList(clause.slice(1), env)
+				this.clearEnv('#scope', env)
+				return res
+			}
+		}
+
+		this.clearEnv('#scope', env)
+
+		return undefined
+	}
+
+	// (case expr
+	//     ((datum+) expr)
+	//     ...
+	//     (else     expr))
+	private evalCase(expr: any, env: any[]): any {
+		const key: any       = this.evalExpr(expr[1], env)
+		const clauses: any[] = expr.slice(2)
+
+		for (const clause of clauses) {
+			const datum: any[] | string = clause[0]
+			if (!Array.isArray(datum) && datum !== 'else') {
+				throw `Error: 'case' requires datum to be in a list. Given: ${Printer.stringify(datum)}`
+			}
+			if (clause.length <= 1) {
+				throw `Error: 'case' requires a clause with one or more expressions.`
+			}
+
+			const isMatch = datum === 'else' ||
+				datum.some((e: any | any[]) => e === key || (e[0] === 'string' && e[1] === key))
+
+			if (isMatch) {
+				env.push(['#scope', 'case'])
+				const res: any = clause.length === 2
+					? this.evalExpr(clause[1], env)
+					: this.evalExprList(clause.slice(1), env)
+				this.clearEnv('#scope', env)
+				return res
+			}
+		}
+
+		return undefined
 	}
 
 	// (display expr)
