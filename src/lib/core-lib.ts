@@ -5,6 +5,7 @@ class CoreLib implements ILib {
 		'atom?'   : this.isAtom,
 		'boolean?': this.isBoolean,
 		'number?' : this.isNumber,
+		'string?' : this.isString,
 		'null?'   : this.isNull,
 		'pair?'   : this.isPair,
 
@@ -63,6 +64,13 @@ class CoreLib implements ILib {
 		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
 
 		return typeof obj === 'number'
+	}
+
+	// (string? expr)
+	private isString(expr: any[], env: any[]): boolean {
+		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
+
+		return typeof obj === 'string'
 	}
 
 	// (null? expr)

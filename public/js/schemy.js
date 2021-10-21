@@ -945,6 +945,7 @@ class CoreLib {
         'atom?': this.isAtom,
         'boolean?': this.isBoolean,
         'number?': this.isNumber,
+        'string?': this.isString,
         'null?': this.isNull,
         'pair?': this.isPair,
         '+': this.add,
@@ -983,6 +984,10 @@ class CoreLib {
     isNumber(expr, env) {
         const [obj] = this.inter.evalArgs(['any'], expr, env);
         return typeof obj === 'number';
+    }
+    isString(expr, env) {
+        const [obj] = this.inter.evalArgs(['any'], expr, env);
+        return typeof obj === 'string';
     }
     isNull(expr, env) {
         const [obj] = this.inter.evalArgs(['any'], expr, env);
@@ -1110,6 +1115,11 @@ class StringLib {
     inter;
     methods = {
         'string': this.string,
+        'string-append': this.stringAppend,
+        'string-length': this.stringLength,
+        'string->number': this.stringToNumber,
+        'string->uppercase': this.stringToUppercase,
+        'string->downcase': this.stringToDowncase,
     };
     builtinFunc;
     builtinHash = {};
@@ -1125,8 +1135,29 @@ class StringLib {
     }
     string(expr, _env) {
         if (expr.length !== 2) {
-            throw "Error: 'string' requires 1 argument. Given: " + (expr.length - 1);
+            throw 'Error: \'string\' requires 1 argument. Given: ' + (expr.length - 1);
         }
         return expr[1];
+    }
+    stringAppend(expr, env) {
+        return this.inter.mapExprList(expr.slice(1), env)
+            .map(Printer.stringify)
+            .reduce((acc, e) => acc + e);
+    }
+    stringLength(expr, env) {
+        const [str] = this.inter.evalArgs(['string'], expr, env);
+        return str.length;
+    }
+    stringToNumber(expr, env) {
+        const [str] = this.inter.evalArgs(['string'], expr, env);
+        return Number(str);
+    }
+    stringToUppercase(expr, env) {
+        const [str] = this.inter.evalArgs(['string'], expr, env);
+        return str.toUpperCase();
+    }
+    stringToDowncase(expr, env) {
+        const [str] = this.inter.evalArgs(['string'], expr, env);
+        return str.toLowerCase();
     }
 }
