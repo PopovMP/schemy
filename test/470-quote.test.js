@@ -39,7 +39,7 @@ describe("' quote abbreviation", function () {
     });
 
     it(" (cons 'a '()) -> (a)", function () {
-        assert.deepStrictEqual(schemy.evaluate(` (cons 'a '()) `), ["a", []]);
+        assert.deepStrictEqual(schemy.evaluate(` (cons 'a '()) `), ["a"]);
     });
 
     it(" (cons 'a 'b) -> (a  b)", function () {

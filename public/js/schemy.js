@@ -7,6 +7,7 @@ class Interpreter {
         'define': this.evalDefine,
         'lambda': this.evalLambda,
         'begin': this.evalBegin,
+        'apply': this.evalApply,
         'let': this.evalLet,
         'let*': this.evalLet,
         'letrec': this.evalLet,
@@ -268,6 +269,28 @@ class Interpreter {
         }
         return res;
     }
+    evalApply(expr, env) {
+        const procId = expr[1];
+        const callArgs = Array.isArray(expr[2]) && expr[2][0] === 'list'
+            ? expr[2].slice(1)
+            : this.evalExpr(expr[2], env);
+        for (let i = 0; i < callArgs.length; i++) {
+            const arg = callArgs[i];
+            if (typeof arg === 'string' && !['true', 'false'].includes(arg)) {
+                callArgs[i] = ['string', arg];
+            }
+            else if (arg === true) {
+                callArgs[i] = 'true';
+            }
+            else if (arg === false) {
+                callArgs[i] = 'false';
+            }
+            else if (arg === null) {
+                callArgs[i] = "'()";
+            }
+        }
+        return this.evalExpr([procId, ...callArgs], env);
+    }
     evalLet(expr, env) {
         if (expr.length < 3) {
             throw 'Error: Improper \'let\' syntax. Missing body.';
@@ -295,22 +318,20 @@ class Interpreter {
         return res;
     }
     evalAnd(expr, env) {
-        if (expr.length !== 3) {
-            throw 'Error: \'and\' requires 2 arguments. Given: ' + (expr.length - 1);
+        switch (expr.length) {
+            case 1: return true;
+            case 2: return this.evalExpr(expr[1], env);
+            case 3: return this.evalExpr(expr[1], env) && this.evalExpr(expr[2], env);
         }
-        const e1 = this.evalExpr(expr[1], env);
-        return this.isTrue(e1)
-            ? this.evalExpr(expr[2], env)
-            : e1;
+        return this.evalExpr(expr[1], env) && this.evalAnd(expr.slice(1), env);
     }
     evalOr(expr, env) {
-        if (expr.length !== 3) {
-            throw 'Error: \'or\' requires 2 arguments. Given: ' + (expr.length - 1);
+        switch (expr.length) {
+            case 1: return false;
+            case 2: return this.evalExpr(expr[1], env);
+            case 3: return this.evalExpr(expr[1], env) || this.evalExpr(expr[2], env);
         }
-        const e1 = this.evalExpr(expr[1], env);
-        return this.isTrue(e1)
-            ? e1
-            : this.evalExpr(expr[2], env);
+        return this.evalExpr(expr[1], env) || this.evalOr(expr.slice(1), env);
     }
     evalIf(expr, env) {
         const test = this.evalExpr(expr[1], env);
@@ -998,16 +1019,52 @@ class CoreLib {
         return Array.isArray(obj) && obj.length > 0;
     }
     add(expr, env) {
-        const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
-        return num1 + num2;
+        if (expr.length === 1) {
+            return 0;
+        }
+        if (expr.length === 2) {
+            const [num] = this.inter.evalArgs(['number'], expr, env);
+            return num;
+        }
+        if (expr.length === 3) {
+            const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
+            return num1 + num2;
+        }
+        let sum = 0;
+        for (let i = 1; i < expr.length; i++) {
+            const num = this.inter.evalExpr(expr[i], env);
+            if (typeof num !== 'number') {
+                throw `Error: '+' requires a number. Given: ${num}`;
+            }
+            sum += num;
+        }
+        return sum;
     }
     subtract(expr, env) {
         const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
         return num1 - num2;
     }
     multiply(expr, env) {
-        const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
-        return num1 * num2;
+        if (expr.length === 1) {
+            return 1;
+        }
+        if (expr.length === 2) {
+            const [num] = this.inter.evalArgs(['number'], expr, env);
+            return num;
+        }
+        if (expr.length === 3) {
+            const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
+            return num1 * num2;
+        }
+        let res = 1;
+        for (let i = 1; i < expr.length; i++) {
+            const num = this.inter.evalExpr(expr[i], env);
+            if (typeof num !== 'number') {
+                throw `Error: '*' requires a number. Given: ${num}`;
+            }
+            res *= num;
+        }
+        return res;
     }
     divide(expr, env) {
         const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
@@ -1074,6 +1131,13 @@ class ListLib {
         'cons': this.cons,
         'car': this.car,
         'cdr': this.cdr,
+        'caar': this.caar,
+        'cadr': this.cadr,
+        'cdar': this.cdar,
+        'cddr': this.cddr,
+        'caddr': this.caddr,
+        'cadddr': this.cadddr,
+        'caddddr': this.caddddr,
     };
     builtinFunc;
     builtinHash = {};
@@ -1091,24 +1155,54 @@ class ListLib {
         if (expr.length === 1) {
             return [];
         }
-        const objects = this.inter.mapExprList(expr.slice(1), env);
-        let res = [];
-        for (let i = objects.length - 1; i > -1; i--) {
-            res = [objects[i], res];
-        }
-        return res;
+        return this.inter.mapExprList(expr.slice(1), env);
     }
     cons(expr, env) {
         const [obj1, obj2] = this.inter.evalArgs(['any', 'any'], expr, env);
-        return [obj1, obj2];
+        return Array.isArray(obj2)
+            ? obj2.length === 0
+                ? [obj1]
+                : [obj1, ...obj2]
+            : [obj1, obj2];
     }
     car(expr, env) {
-        const [obj] = this.inter.evalArgs(['list'], expr, env);
-        return obj[0];
+        return this.inter.evalArgs(['list'], expr, env)[0][0];
     }
     cdr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        return obj[1];
+        if (!Array.isArray(obj) || obj.length === 0) {
+            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+        }
+        return obj.length === 2 ? obj[1] : obj.slice(1);
+    }
+    caar(expr, env) {
+        return this.inter.evalArgs(['list'], expr, env)[0][0][0];
+    }
+    cdar(expr, env) {
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
+            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+        }
+        return obj[0].length === 2 ? obj[0][1] : obj.slice(1);
+    }
+    cadr(expr, env) {
+        return this.inter.evalArgs(['list'], expr, env)[0][1];
+    }
+    cddr(expr, env) {
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || !Array.isArray(obj[1]) || obj[1].length === 0) {
+            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+        }
+        return obj[1].length === 2 ? obj[1][1] : obj.slice(1);
+    }
+    caddr(expr, env) {
+        return this.inter.evalArgs(['list'], expr, env)[0][2];
+    }
+    cadddr(expr, env) {
+        return this.inter.evalArgs(['list'], expr, env)[0][3];
+    }
+    caddddr(expr, env) {
+        return this.inter.evalArgs(['list'], expr, env)[0][4];
     }
 }
 class StringLib {

@@ -87,11 +87,34 @@ class CoreLib implements ILib {
 		return Array.isArray(obj) && obj.length > 0
 	}
 
-	// (+ num1 num2)
+	// (+ num1 num2 ...)
 	private add(expr: any[], env: any[]): number {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		if (expr.length === 1) {
+			return 0
+		}
 
-		return num1 + num2
+		if (expr.length === 2) {
+			const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+
+			return num
+		}
+
+		if (expr.length === 3) {
+			const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+
+			return num1 + num2
+		}
+
+		let sum: number = 0
+		for (let i: number = 1; i < expr.length; i++) {
+			const num = this.inter.evalExpr(expr[i], env)
+			if (typeof num !== 'number') {
+				throw `Error: '+' requires a number. Given: ${num}`
+			}
+			sum += num
+		}
+
+		return sum
 	}
 
 	// (- num1 num2)
@@ -101,11 +124,36 @@ class CoreLib implements ILib {
 		return num1 - num2
 	}
 
-	// (* num1 num2)
+	// (* num1 num2 ...)
 	private multiply(expr: any[], env: any[]): number {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		if (expr.length === 1) {
+			return 1
+		}
 
-		return num1 * num2
+		if (expr.length === 2) {
+			const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+
+			return num
+		}
+
+		if (expr.length === 3) {
+			const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+
+			return num1 * num2
+		}
+
+		let res: number = 1
+		for (let i: number = 1; i < expr.length; i++) {
+			const num = this.inter.evalExpr(expr[i], env)
+
+			if (typeof num !== 'number') {
+				throw `Error: '*' requires a number. Given: ${num}`
+			}
+
+			res *= num
+		}
+
+		return res
 	}
 
 	// (/ num1 num2)

@@ -23,7 +23,7 @@ describe('define', function () {
 	it('(define a (list 1 2))', function () {
 		assert.deepStrictEqual(schemy.evaluate(`
 			(define a (list 1 2))
-			a                 `),  [1, [2, []]])
+			a                 `),  [1, 2])
 	})
 
 	it('(define (foo a) a)', function () {

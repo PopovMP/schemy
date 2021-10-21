@@ -6,6 +6,7 @@ class Interpreter {
 		'define'    : this.evalDefine,
 		'lambda'    : this.evalLambda,
 		'begin'     : this.evalBegin,
+		'apply'     : this.evalApply,
 
 		'let'       : this.evalLet,
 		'let*'      : this.evalLet,
@@ -354,6 +355,33 @@ class Interpreter {
 		return res
 	}
 
+	// (apply symbol (list arg*) | expr)
+	private evalApply(expr: any[], env: any[]): any {
+		const procId: string  = expr[1]
+
+		const callArgs: any[] = Array.isArray(expr[2]) && expr[2][0] === 'list'
+			? expr[2].slice(1)
+			: this.evalExpr(expr[2], env)
+
+		for (let i: number = 0; i < callArgs.length; i++) {
+			const arg: any = callArgs[i]
+			if (typeof arg === 'string' && !['true', 'false'].includes(arg)) {
+				callArgs[i] = ['string', arg]
+			}
+			else if (arg === true) {
+				callArgs[i] = 'true'
+			}
+			else if (arg === false) {
+				callArgs[i] = 'false'
+			}
+			else if (arg === null) {
+				callArgs[i] = "'()"
+			}
+		}
+
+		return this.evalExpr([procId, ...callArgs], env)
+	}
+
 	// (let ([name value]+) expr+)
 	private evalLet(expr: any[], env: any[]): any[] {
 		if (expr.length < 3) {
@@ -388,30 +416,30 @@ class Interpreter {
 		return res
 	}
 
-	// (and e1 e2)
+	// (and)            => true
+	// (and expr)       => expr
+	// (and expr expr*) => the first faulty or the last one
 	private evalAnd(expr: any[], env: any[]): any {
-		if (expr.length !== 3) {
-			throw 'Error: \'and\' requires 2 arguments. Given: ' + (expr.length - 1)
+		switch (expr.length) {
+			case 1:return true
+			case 2:return this.evalExpr(expr[1], env)
+			case 3:return this.evalExpr(expr[1], env) && this.evalExpr(expr[2], env)
 		}
 
-		const e1: any = this.evalExpr(expr[1], env)
-
-		return this.isTrue(e1)
-			? this.evalExpr(expr[2], env)
-			: e1
+		return this.evalExpr(expr[1], env) && this.evalAnd(expr.slice(1), env)
 	}
 
-	// (or e1 e2)
+	// (or)            => false
+	// (or expr)       => expr
+	// (or expr expr*) => the first truthy or the last one
 	private evalOr(expr: any[], env: any[]): any {
-		if (expr.length !== 3) {
-			throw 'Error: \'or\' requires 2 arguments. Given: ' + (expr.length - 1)
+		switch (expr.length) {
+			case 1:return false
+			case 2:return this.evalExpr(expr[1], env)
+			case 3:return this.evalExpr(expr[1], env) || this.evalExpr(expr[2], env)
 		}
 
-		const e1: any = this.evalExpr(expr[1], env)
-
-		return this.isTrue(e1)
-			? e1
-			: this.evalExpr(expr[2], env)
+		return this.evalExpr(expr[1], env) || this.evalOr(expr.slice(1), env)
 	}
 
 	// (if test then else)
