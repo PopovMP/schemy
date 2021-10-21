@@ -15,6 +15,8 @@ class Interpreter {
 		'and'       : this.evalAnd,
 		'or'        : this.evalOr,
 		'if'        : this.evalIf,
+		'when'      : this.evalWhen,
+		'unless'    : this.evalUnless,
 		'cond'      : this.evalCond,
 		'case'      : this.evalCase,
 
@@ -384,6 +386,60 @@ class Interpreter {
 			: expr.length === 4
 				? this.evalExpr(expr[3], env)
 				: undefined
+	}
+
+	// (unless test-expr
+	//         expr+)
+	private evalUnless(expr: any[], env: any[]): void {
+		if (expr.length === 1) {
+			throw 'Error: Empty \'unless\''
+		}
+
+		if (expr.length === 2) {
+			throw 'Error: Empty \'unless\' body'
+		}
+
+		if ( this.isTrue(this.evalExpr(expr[1], env)) ) {
+			return
+		}
+
+		env.push(['#scope', 'unless'])
+
+		if (expr.length === 3) {
+			this.evalExpr(expr[2], env)
+		}
+		else {
+			this.evalExprList(expr.slice(2), env)
+		}
+
+		this.clearEnv('#scope', env)
+	}
+
+	// (when test-expr
+	//       expr+)
+	private evalWhen(expr: any[], env: any[]): void {
+		if (expr.length === 1) {
+			throw 'Error: Empty \'when\''
+		}
+
+		if (expr.length === 2) {
+			throw 'Error: Empty \'when\' body'
+		}
+
+		if ( !this.isTrue(this.evalExpr(expr[1], env)) ) {
+			return
+		}
+
+		env.push(['#scope', 'when'])
+
+		if (expr.length === 3) {
+			this.evalExpr(expr[2], env)
+		}
+		else {
+			this.evalExprList(expr.slice(2), env)
+		}
+
+		this.clearEnv('#scope', env)
 	}
 
 	// (cond

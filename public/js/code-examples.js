@@ -63,16 +63,14 @@ const examplesList = [
         name: "Hanoi tower",
         code: `;; Hanoi tower
 
-(define (move from to)
-    (print "Move disk from" from "to" to) )
+(define (solve n a c b)
+    (when (> n 0)
 
-(define (solve n from to through)
-    (if (> n 0)
-        (begin
-            (solve (- n 1) from through to)
-            (move from to)
-            (solve (- n 1) through to from))
-        "Ready"))
+        (solve (- n 1) a b c)
+        
+        (print "Move disk from" a "to" c)
+        
+        (solve (- n 1) b c a)))
 
 (solve 4 "A" "C" "B")
 `
