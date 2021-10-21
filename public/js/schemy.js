@@ -215,9 +215,11 @@ class Interpreter {
     evalDefine(expr, env) {
         if (Array.isArray(expr[1])) {
             const name = expr[1][0];
-            const lambda = ['lambda', expr[1].slice(1), ...expr.slice(2)];
-            const proc = this.evalExpr(lambda, env);
-            this.addToEnv(name, proc, 'closure', env);
+            const params = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1);
+            const body = expr.slice(2);
+            const lambda = ['lambda', params, ...body];
+            const closure = this.evalExpr(lambda, env);
+            this.addToEnv(name, closure, 'closure', env);
         }
         else {
             const name = expr[1];

@@ -37,4 +37,10 @@ describe('define', function () {
 			(define (foo) 1 2)
 			(foo)            `),  2)
 	})
+
+	it('(define (foo . a) a)', function () {
+		assert.deepStrictEqual(schemy.evaluate(`
+			(define (foo . a) a)
+			(foo 1 2)            `),  [1, 2])
+	})
 })

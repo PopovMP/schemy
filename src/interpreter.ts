@@ -237,7 +237,6 @@ class Interpreter {
 				: this.mapExprList(expr.slice(1), env)
 
 		// (closure params body env)
-
 		const params: any        = closure[1]
 		const body: any[]        = closure[2]
 		const closureEnv: any[]  = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]])
@@ -279,15 +278,18 @@ class Interpreter {
 		return res
 	}
 
-	// (define symbol expr)      ; Variable definition
-	// (define (symbol p*) expr) ; Procedure definition
+	// (define name expr)        ; Variable definition
+	// (define (name p*) expr+)  ; Procedure definition
+	// (define (name . p) expr+) ; Procedure definition - catch all args
 	private evalDefine(expr: any[], env: any[]): void {
 		if ( Array.isArray(expr[1]) ) {
 			// Define procedure
 			const name: string  = expr[1][0]
-			const lambda: any[] = ['lambda', expr[1].slice(1), ...expr.slice(2)]
-			const proc: any     = this.evalExpr(lambda, env)
-			this.addToEnv(name, proc, 'closure', env)
+			const params: any   = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1)
+			const body: any[]   = expr.slice(2)
+			const lambda: any[] = ['lambda', params, ...body]
+			const closure: any  = this.evalExpr(lambda, env)
+			this.addToEnv(name, closure, 'closure', env)
 		}
 		else {
 			// Define variable
