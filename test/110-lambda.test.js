@@ -51,6 +51,27 @@ describe('lambda', function () {
 		assert.deepStrictEqual(schemy.evaluate('((lambda a a) 1 2 3)'), [1, 2, 3])
 	})
 
+	it('lambda rest args 1', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda (h . t) t) 1 2 3)'), [2, 3])
+	})
+
+	it('lambda rest args 2', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda (h . t) t) 1 2)'), [2])
+	})
+
+	it('lambda rest args 3', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda (h . t) t) 1)'), [])
+	})
+
+	it('lambda rest args 4', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda (f  s . t) t) 1 2)'), [])
+	})
+
+	it('lambda rest args 5', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda (f  s . t) t) 1)'),
+			'Error: Wrong count of arguments of proc lambda. Required min 2 but given: 1')
+	})
+
 	it('lambda func-name', function () {
 		assert.strictEqual(schemy.evaluate('((lambda (a b) #name) 1 2)'), 'lambda')
 	})

@@ -245,22 +245,43 @@ class Interpreter {
 		// Parameters binding
 		const argsCount: number   = expr.length - 1
 		const paramsCount: number = Array.isArray(params) ? params.length : -1
+
 		if (paramsCount >= 0) {
-			// Check count of arguments
-			if (argsCount !== paramsCount) {
+			// Bind args to params
+
+			const dotIndex: number = params.indexOf('.')
+			if (dotIndex >= 0) {
+				if (dotIndex === 0) {
+					throw `Error: Unexpected dot (.) as a first param in ${procId}.`
+				}
+				else if (dotIndex === params.length) {
+					throw `Error: Unexpected dot (.) as a last param in ${procId}.`
+				}
+				else if (dotIndex > argsCount) {
+					throw `Error: Wrong count of arguments of proc ${procId}. Required min ${dotIndex} but given: ${argsCount}`
+				}
+			}
+			else if (argsCount !== paramsCount) {
 				throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`
 			}
 
 			for (let i: number = 0; i < params.length; i++) {
-				this.addToEnv(params[i], args[i], 'arg', closureEnv)
+				if (params[i] === '.') {
+					this.addToEnv(params[i + 1], args.slice(i), 'arg', closureEnv)
+					break
+				}
+				else  {
+					this.addToEnv(params[i], args[i], 'arg', closureEnv)
+				}
 			}
 		}
 		else {
-			// Bind all arguments to the parameter
+			// Catch all ars
 			if (argsCount === 0) {
 				throw `Error: No arguments given to proc ${procId}.`
 			}
 
+			// Bind all arguments to the parameter
 			this.addToEnv(params, args, 'arg', closureEnv)
 		}
 

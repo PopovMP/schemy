@@ -190,11 +190,29 @@ class Interpreter {
         const argsCount = expr.length - 1;
         const paramsCount = Array.isArray(params) ? params.length : -1;
         if (paramsCount >= 0) {
-            if (argsCount !== paramsCount) {
+            const dotIndex = params.indexOf('.');
+            if (dotIndex >= 0) {
+                if (dotIndex === 0) {
+                    throw `Error: Unexpected dot (.) as a first param in ${procId}.`;
+                }
+                else if (dotIndex === params.length) {
+                    throw `Error: Unexpected dot (.) as a last param in ${procId}.`;
+                }
+                else if (dotIndex > argsCount) {
+                    throw `Error: Wrong count of arguments of proc ${procId}. Required min ${dotIndex} but given: ${argsCount}`;
+                }
+            }
+            else if (argsCount !== paramsCount) {
                 throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`;
             }
             for (let i = 0; i < params.length; i++) {
-                this.addToEnv(params[i], args[i], 'arg', closureEnv);
+                if (params[i] === '.') {
+                    this.addToEnv(params[i + 1], args.slice(i), 'arg', closureEnv);
+                    break;
+                }
+                else {
+                    this.addToEnv(params[i], args[i], 'arg', closureEnv);
+                }
             }
         }
         else {
