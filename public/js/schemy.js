@@ -170,10 +170,8 @@ class Interpreter {
     evalApplication(expr, env) {
         const proc = expr[0];
         const isNamed = typeof proc === 'string';
-        const procId = isNamed ? proc : proc[0];
-        const closure = isNamed
-            ? this.lookup(proc, env)
-            : this.evalExpr(proc, env);
+        const procId = isNamed ? proc : proc[0] === 'lambda' ? 'lambda' : 'expression';
+        const closure = isNamed ? this.lookup(proc, env) : this.evalExpr(proc, env);
         if (typeof closure === 'string' && this.isDefined(closure, env)) {
             return this.evalExpr([this.evalExpr(closure, env), ...expr.slice(1)], env);
         }
@@ -189,8 +187,21 @@ class Interpreter {
         const body = closure[2];
         const closureEnv = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]]);
         const scopeStart = closureEnv.length - 1;
-        for (let i = 0; i < params.length; i++) {
-            this.addToEnv(params[i], args[i], 'arg', closureEnv);
+        const argsCount = expr.length - 1;
+        const paramsCount = Array.isArray(params) ? params.length : -1;
+        if (paramsCount >= 0) {
+            if (argsCount !== paramsCount) {
+                throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`;
+            }
+            for (let i = 0; i < params.length; i++) {
+                this.addToEnv(params[i], args[i], 'arg', closureEnv);
+            }
+        }
+        else {
+            if (argsCount === 0) {
+                throw `Error: No arguments given to proc ${procId}.`;
+            }
+            this.addToEnv(params, args, 'arg', closureEnv);
         }
         const res = this.evalExprList(body, closureEnv);
         if (Array.isArray(res) && res[0] === 'closure') {
@@ -216,10 +227,7 @@ class Interpreter {
     }
     evalLambda(expr, env) {
         if (expr.length < 3) {
-            throw 'Error: Improper function. Given: ' + Printer.stringify(expr);
-        }
-        if (!Array.isArray(expr[1])) {
-            throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr);
+            throw 'Error: Improper lambda. Given: ' + Printer.stringify(expr);
         }
         return ['closure', expr[1], expr.slice(2), env];
     }

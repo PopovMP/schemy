@@ -215,14 +215,12 @@ class Interpreter {
 	}
 
 	// (proc arg*)
-	// ((lambda (par*) expr+) arg*)
+	// ((lambda params expr+) arg*)
 	private evalApplication(expr: any[], env: any[]): any {
 		const proc: string | any[]    = expr[0]
 		const isNamed: boolean        = typeof proc === 'string'
-		const procId: string          = isNamed ? proc as string : proc[0]
-		const closure: any[] | string = isNamed
-			? this.lookup(proc as string, env)
-			: this.evalExpr(proc, env)
+		const procId: string          = isNamed ? proc as string : proc[0] === 'lambda' ? 'lambda' : 'expression'
+		const closure: any[] | string = isNamed ? this.lookup(proc as string, env) : this.evalExpr(proc, env)
 
 		if (typeof closure === 'string' && this.isDefined(closure, env)) {
 			return this.evalExpr([this.evalExpr(closure, env), ...expr.slice(1)], env)
@@ -238,13 +236,33 @@ class Interpreter {
 				? [this.evalExpr(expr[1], env)]
 				: this.mapExprList(expr.slice(1), env)
 
-		const params: any[]      = closure[1]
+		// (closure params body env)
+
+		const params: any        = closure[1]
 		const body: any[]        = closure[2]
 		const closureEnv: any[]  = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]])
 		const scopeStart: number = closureEnv.length - 1
 
-		for (let i: number = 0; i < params.length; i++) {
-			this.addToEnv(params[i], args[i], 'arg', closureEnv)
+		// Parameters binding
+		const argsCount: number   = expr.length - 1
+		const paramsCount: number = Array.isArray(params) ? params.length : -1
+		if (paramsCount >= 0) {
+			// Check count of arguments
+			if (argsCount !== paramsCount) {
+				throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`
+			}
+
+			for (let i: number = 0; i < params.length; i++) {
+				this.addToEnv(params[i], args[i], 'arg', closureEnv)
+			}
+		}
+		else {
+			// Bind all arguments to the parameter
+			if (argsCount === 0) {
+				throw `Error: No arguments given to proc ${procId}.`
+			}
+
+			this.addToEnv(params, args, 'arg', closureEnv)
 		}
 
 		const res: any = this.evalExprList(body, closureEnv)
@@ -279,17 +297,14 @@ class Interpreter {
 		}
 	}
 
-	// (lambda (par*) expr)
+	// (lambda (p*)   expr+)
+	// (lambda params expr+) ; Catch all args
 	private evalLambda(expr: any[], env: any[]): any[] {
 		if (expr.length < 3) {
-			throw 'Error: Improper function. Given: ' + Printer.stringify(expr)
+			throw 'Error: Improper lambda. Given: ' + Printer.stringify(expr)
 		}
 
-		if (!Array.isArray(expr[1])) {
-			throw 'Error: Improper function parameters. Given: ' + Printer.stringify(expr)
-		}
-
-		// (closure (par*) body env)
+		// (closure params body env)
 		return ['closure', expr[1], expr.slice(2), env]
 	}
 

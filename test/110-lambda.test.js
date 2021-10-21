@@ -47,12 +47,16 @@ describe('lambda', function () {
                 2 3)`), 5)
 	})
 
+	it('lambda catch all args', function () {
+		assert.deepStrictEqual(schemy.evaluate('((lambda a a) 1 2 3)'), [1, 2, 3])
+	})
+
 	it('lambda func-name', function () {
-		assert.strictEqual(schemy.evaluate('((lambda (a b) #name) 1 2 3 4)'), 'lambda')
+		assert.strictEqual(schemy.evaluate('((lambda (a b) #name) 1 2)'), 'lambda')
 	})
 
 	it('lambda func-args', function () {
-		assert.deepStrictEqual(schemy.evaluate('((lambda (a b) #args) 1 2 3 4)'), [1, 2, 3, 4])
+		assert.deepStrictEqual(schemy.evaluate('((lambda (a b) #args) 1 2)'), [1, 2])
 	})
 
 	it('Improper function', function () {
@@ -62,12 +66,12 @@ describe('lambda', function () {
 
 	it('No params function', function () {
 		assert.strictEqual(schemy.evaluate('(lambda (+ 2 3))'),
-			'Error: Improper function. Given: (lambda (+ 2 3))')
+			'Error: Improper lambda. Given: (lambda (+ 2 3))')
 	})
 
 	it('No body', function () {
 		assert.strictEqual(schemy.evaluate('(lambda (a b))'),
-			'Error: Improper function. Given: (lambda (a b))')
+			'Error: Improper lambda. Given: (lambda (a b))')
 	})
 
 	it('lambda returns a builtin function', function () {
