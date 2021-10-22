@@ -295,6 +295,9 @@ class Interpreter {
         if (expr.length < 3) {
             throw 'Error: Improper \'let\' syntax. Missing body.';
         }
+        if (typeof expr[1] === 'string' && Array.isArray(expr[2])) {
+            return this.evalNamedLet(expr, env);
+        }
         if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0])) {
             throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1]);
         }
@@ -309,6 +312,35 @@ class Interpreter {
         const res = expr.length === 3
             ? this.evalExpr(expr[2], env)
             : this.evalExprList(expr.slice(2), env);
+        if (Array.isArray(res) && res[0] === 'closure') {
+            env.splice(scopeStart, 1);
+        }
+        else {
+            this.clearEnv('#scope', env);
+        }
+        return res;
+    }
+    evalNamedLet(expr, env) {
+        if (expr.length < 4) {
+            throw 'Error: Improper named \'let\' syntax. Missing body.';
+        }
+        env.push(['#scope', 'let']);
+        const scopeStart = env.length - 1;
+        const bindings = expr[2];
+        const args = [];
+        for (const binding of bindings) {
+            const name = binding[0];
+            const value = this.evalExpr(binding[1], env);
+            this.addToEnv(name, value, 'let', env);
+            args.push(name);
+        }
+        const body = expr.slice(3);
+        const lambda = ['lambda', args, ...body];
+        const closure = this.evalExpr(lambda, env);
+        this.addToEnv(expr[1], closure, 'closure', env);
+        const res = expr.length === 4
+            ? this.evalExpr(expr[3], env)
+            : this.evalExprList(expr.slice(3), env);
         if (Array.isArray(res) && res[0] === 'closure') {
             env.splice(scopeStart, 1);
         }
@@ -1173,7 +1205,7 @@ class ListLib {
         if (!Array.isArray(obj) || obj.length === 0) {
             throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
         }
-        return obj.length === 2 ? obj[1] : obj.slice(1);
+        return obj.slice(1);
     }
     caar(expr, env) {
         return this.inter.evalArgs(['list'], expr, env)[0][0][0];
@@ -1183,7 +1215,7 @@ class ListLib {
         if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
             throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
         }
-        return obj[0].length === 2 ? obj[0][1] : obj.slice(1);
+        return obj[0].length === 2 ? obj[0][1] : obj[0].slice(1);
     }
     cadr(expr, env) {
         return this.inter.evalArgs(['list'], expr, env)[0][1];
@@ -1193,7 +1225,7 @@ class ListLib {
         if (!Array.isArray(obj) || !Array.isArray(obj[1]) || obj[1].length === 0) {
             throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
         }
-        return obj[1].length === 2 ? obj[1][1] : obj.slice(1);
+        return obj[1].slice(1);
     }
     caddr(expr, env) {
         return this.inter.evalArgs(['list'], expr, env)[0][2];

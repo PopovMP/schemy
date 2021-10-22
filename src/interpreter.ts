@@ -388,6 +388,10 @@ class Interpreter {
 			throw 'Error: Improper \'let\' syntax. Missing body.'
 		}
 
+		if (typeof expr[1] === 'string' && Array.isArray(expr[2])) {
+			return this.evalNamedLet(expr, env)
+		}
+
 		if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0])) {
 			throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1])
 		}
@@ -405,6 +409,43 @@ class Interpreter {
 		const res: any = expr.length === 3
 			? this.evalExpr(expr[2], env)
 			: this.evalExprList(expr.slice(2), env)
+
+		if (Array.isArray(res) && res[0] === 'closure') {
+			env.splice(scopeStart, 1)
+		}
+		else {
+			this.clearEnv('#scope', env)
+		}
+
+		return res
+	}
+
+	// (let name ([var value]+) expr+)
+	private evalNamedLet(expr: any[], env: any[]): any[] {
+		if (expr.length < 4) {
+			throw 'Error: Improper named \'let\' syntax. Missing body.'
+		}
+
+		env.push(['#scope', 'let'])
+		const scopeStart: number = env.length - 1
+
+		const bindings: any[] = expr[2]
+		const args: string[] = []
+		for (const binding of bindings) {
+			const name: string = binding[0]
+			const value: any   = this.evalExpr(binding[1], env)
+			this.addToEnv(name, value, 'let', env)
+			args.push(name)
+		}
+
+		const body: any[]   = expr.slice(3)
+		const lambda: any[] = ['lambda', args, ...body]
+		const closure: any  = this.evalExpr(lambda, env)
+		this.addToEnv(expr[1], closure, 'closure', env)
+
+		const res: any = expr.length === 4
+			? this.evalExpr(expr[3], env)
+			: this.evalExprList(expr.slice(3), env)
 
 		if (Array.isArray(res) && res[0] === 'closure') {
 			env.splice(scopeStart, 1)

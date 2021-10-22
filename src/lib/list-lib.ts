@@ -63,7 +63,7 @@ class ListLib implements ILib {
 			throw 'Error: Required a pair. Given: ' + Printer.stringify(obj)
 		}
 
-		return obj.length === 2 ? obj[1] : obj.slice(1)
+		return obj.slice(1)
 	}
 
 	// (caar expr)
@@ -78,7 +78,7 @@ class ListLib implements ILib {
 			throw 'Error: Required a pair. Given: ' + Printer.stringify(obj)
 		}
 
-		return obj[0].length === 2 ? obj[0][1] : obj.slice(1)
+		return obj[0].length === 2 ? obj[0][1] : obj[0].slice(1)
 	}
 
 	// (cadr expr)
@@ -93,7 +93,7 @@ class ListLib implements ILib {
 			throw 'Error: Required a pair. Given: ' + Printer.stringify(obj)
 		}
 
-		return obj[1].length === 2 ? obj[1][1] : obj.slice(1)
+		return obj[1].slice(1)
 	}
 
 	// (caddr expr)

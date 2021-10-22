@@ -121,7 +121,7 @@ const examplesList = [
 
 (define src "
     (define lst '(6 7))
-    (* (car lst) (cdr lst))
+    (* (car lst) (cadr lst))
 " )
 
 (define ilc (parse src)) ; Parse the source code to intermediate language

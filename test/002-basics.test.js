@@ -42,4 +42,26 @@ describe('Eval basics', function () {
 			assert.strictEqual(schemy.evaluate('3 (+ 1 1)'), 2)
 		})
 	})
+
+	describe('pair?', function () {
+		it(`(pair? (list)) → #f`, function () {
+			assert.strictEqual(schemy.evaluate(`(pair? (list))`), false)
+		})
+
+		it(`(pair? (list 1)) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(pair? (list 1))`), true)
+		})
+
+		it(`(pair? (cdr '(1))) → #f`, function () {
+			assert.strictEqual(schemy.evaluate(`(pair? (cdr '(1)))`), false)
+		})
+
+		it(`(pair? (cdr '(1 2))) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(pair? (cdr '(1 2)))`), true)
+		})
+
+		it(`(pair? (cdr (list 1 2))) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(pair? (cdr (list 1 2)))`), true)
+		})
+	})
 })
