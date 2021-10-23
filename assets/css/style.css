@@ -21,7 +21,7 @@
 }
 
 .CodeMirror {
-  min-height: 500px !important;
+  height: 500px !important;
 }
 
 #code-area {

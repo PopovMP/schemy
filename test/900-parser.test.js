@@ -2,7 +2,7 @@
 
 const assert            = require('assert')
 const {describe, it}    = require('@popovmp/mocha-tiny')
-const {Parser, Printer} = require('../public/js/schemy.js')
+const {Parser, Printer} = require('../assets/js/schemy.js')
 
 const parser = new Parser()
 

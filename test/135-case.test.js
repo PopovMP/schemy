@@ -2,7 +2,7 @@
 
 const assert         = require('assert')
 const {describe, it} = require('@popovmp/mocha-tiny')
-const Easl           = require('../public/js/schemy.js').Schemy
+const Easl           = require('../assets/js/schemy.js').Schemy
 
 const easl = new Easl()
 

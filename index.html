@@ -3,19 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Schemy - sub Scheme implementation in JS</title>
-  <link rel="stylesheet" href="css/style.css?v=01"/>
-  <link rel="stylesheet" href="codemirror/codemirror.css?v=01"/>
-  <link rel="stylesheet" href="codemirror/schemy-color.css?v=02"/>
+  <link rel="stylesheet" href="assets/css/style.css?v=01"/>
+  <link rel="stylesheet" href="assets/codemirror/codemirror.css?v=01"/>
+  <link rel="stylesheet" href="assets/codemirror/schemy-color.css?v=02"/>
 
   <link rel="icon" type="image/png" href="favicon.ico">
 </head>
 <body>
 
-<h1>Schemy - sub Scheme implementation in JS</h1>
-
 <div class="wrapper">
   <div class="main-bar">
-    <h2>Try Schemy</h2>
+    <h1>(Schemy (a partial Scheme interpreter))</h1>
     <form>
       <label for="code-area" style="display: none">Try Schemy</label>
       <textarea id="code-area" name="code"></textarea><br/>
@@ -30,23 +28,23 @@
   </div>
 
   <div class="link-bar">
+    <h2>About</h2>
+    <a href="https://github.com/popovmp/schemy">GitHub</a>
+    <br>
+    <a href="https://github.com/popovmp/schemy/ReadMe.md">Read Me</a>
+    <br>
     <h2>Examples</h2>
     <div id="select-examples"></div>
   </div>
 </div>
 
-<p>
-  Source code: <a href="https://github.com/popovmp/schemy">https://github.com/popovmp/schemy</a>.
-</p>
+<script src="assets/js/schemy.js"></script>
+<script src="assets/js/code-examples.js"></script>
+<script src="assets/js/index.js"></script>
 
-
-<script src="js/schemy.js"></script>
-<script src="js/code-examples.js"></script>
-<script src="js/index.js"></script>
-
-<script src="codemirror/codemirror.js"></script>
-<script src="codemirror/schemy-mode.js"></script>
-<script src="codemirror/matchbrackets.js"></script>
+<script src="assets/codemirror/codemirror.js"></script>
+<script src="assets/codemirror/schemy-mode.js"></script>
+<script src="assets/codemirror/matchbrackets.js"></script>
 
 <script>
 	initialize()

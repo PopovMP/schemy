@@ -1,8 +1,8 @@
 'use strict'
 
 const {describe, it} = require('@popovmp/mocha-tiny')
-const {Schemy}         = require('../public/js/schemy.js')
-const codeExamples   = require('../public/js/code-examples.js').codeExamples
+const {Schemy}         = require('../assets/js/schemy.js')
+const codeExamples   = require('../assets/js/code-examples.js').codeExamples
 
 const schemy = new Schemy()
 

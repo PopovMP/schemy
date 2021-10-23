@@ -4,8 +4,8 @@
     "target": "esnext",
     "strict": true,
     "removeComments": true,
-    "sourceMap": false,
-    "outFile": "./public/js/schemy.js"
+    "sourceMap": true,
+    "outFile": "./assets/js/schemy.js"
   },
   "include": [
     "./src/**/*"

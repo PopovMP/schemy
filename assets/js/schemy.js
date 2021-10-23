@@ -1288,3 +1288,4 @@ class StringLib {
         return str.toLowerCase();
     }
 }
+//# sourceMappingURL=schemy.js.map
