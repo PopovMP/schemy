@@ -49,7 +49,7 @@ class CoreLib implements ILib {
 	private isAtom(expr: any[], env: any[]): boolean {
 		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
 
-		return !(Array.isArray(obj) && obj.length === 0)
+		return !Array.isArray(obj) || obj.length === 0
 	}
 
 	// (boolean? expr)

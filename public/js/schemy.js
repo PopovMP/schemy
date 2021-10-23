@@ -697,7 +697,7 @@ class Parser {
             .replace(/λ/g, 'lambda')
             .replace(/#t/g, 'true')
             .replace(/#f/g, 'false')
-            .replace(/'\([ \t\r\n]*\)/g, '(list)')
+            .replace(/'\([ \t\r\n]*\)/g, '\'()')
             .replace(/\(string[ \t\r\n]*\)/g, '""')
             .replace(/\\n/g, '\n')
             .replace(/\\t/g, '\t')
@@ -1028,7 +1028,7 @@ class CoreLib {
     }
     isAtom(expr, env) {
         const [obj] = this.inter.evalArgs(['any'], expr, env);
-        return !(Array.isArray(obj) && obj.length === 0);
+        return !Array.isArray(obj) || obj.length === 0;
     }
     isBoolean(expr, env) {
         const [obj] = this.inter.evalArgs(['any'], expr, env);

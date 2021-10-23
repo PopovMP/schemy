@@ -227,6 +227,130 @@ const examplesList = [
 (print "Fibonacci 9 =" (int (fib nine)))
 `
     },
+
+	{
+		name: "The Lisp defined in McCarthy's 1960 paper",
+		code: `;; The Lisp defined in McCarthy's 1960 paper, translated into Scheme.
+;; Assumes forms: define, cond, quote
+;; Assumes procs: atom?, number?, boolean?, eq?, cons, car, cdr
+
+(define (caar. a)
+  (car (car a)))
+
+(define (cadr. a)
+  (car (cdr a)))
+
+(define (cdar. a)
+  (cdr (car a)))
+
+(define (cddr. a)
+  (cdr (cdr a)))
+
+(define (cadar. a)
+  (cadr. (car a)))
+
+(define (caddr. a)
+  (cadr. (cdr a)))
+
+(define (caddar. a)
+  (caddr. (car a)))
+
+(define (eval. e a)
+  (cond
+    [(atom? e)
+       (cond
+         [(eq? e 'nil) '()]
+         [(eq? e 't  )  #t]
+         [(number?  e)   e]
+         [(boolean? e)   e]
+         [#t  (assoc. e a)])]
+
+    [(atom? (car e))
+       (cond
+         [(eq? (car e) 'quote) (cadr. e)]
+         [(eq? (car e) 'cond ) (cond. (cdr e) a)]
+
+         [(eq? (car e) 'atom ) (atom? (eval. (cadr. e) a))]
+         [(eq? (car e) 'eq   ) (eq?   (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'cons ) (cons  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'car  ) (car   (eval. (cadr. e) a))]
+         [(eq? (car e) 'cdr  ) (cdr   (eval. (cadr. e) a))]
+
+         [(eq? (car e) 'add  ) (+  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'subt ) (-  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'mult ) (*  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'dev  ) (/  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'gt   ) (>  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+         [(eq? (car e) 'lt   ) (<  (eval. (cadr. e) a) (eval. (caddr. e) a))]
+
+         ; Application
+         [#t (eval. (cons (assoc. (car e) a) ; (label name (lambda...))
+                          (cdr e))           ; (args...)
+                     a)])]
+
+    [(eq? (caar. e) 'label ) 
+     (eval. (cons (caddar. e)         ; (lambda (params...) body)
+                  (cdr e))            ; (args...)
+            (cons (cons (cadar. e)    ; name
+                        (cons (car e) ; (label name (lambda...))
+                              '()))
+                  a))]
+
+    [(eq? (caar. e) 'lambda)         ; ((lambda (params...) body) args...)
+     (eval. (caddar. e)              ; body
+            (append.                 ; make environment
+              (pair. (cadar. e)      ; (params...)
+                     (evlis. (cdr e) ; (args...)
+                              a))
+              a))]
+              
+    [#t (raise (format "Unrecognised syntax: ~S" (car e)))]))
+
+(define (cond. c a)
+  (cond [(eval. (caar.  c) a)
+         (eval. (cadar. c) a)]
+        [#t (cond. (cdr c) a)]))
+
+(define (append. u v)
+  (cond [(eq? u '()) v]
+        [#t (cons (car u)
+                  (append. (cdr u) v))]))
+
+(define (assoc. e a)
+  (cond [(eq? a '()) '()]
+        [(eq? e (caar. a)) (cadar. a)]
+        [#t (assoc. e (cdr a))]))
+
+(define (pair. u v)
+  (cond [(eq? u '()) '()]
+        [#t (cons (cons (car u)
+                        (cons (car v) '()))
+                  (pair. (cdr u) (cdr v)))]))
+
+(define (evlis. u a)
+  (cond [(eq? u '()) '()]
+        [#t (cons (eval.  (car u) a)
+                  (evlis. (cdr u) a))]))
+
+(eval.
+ '((label loop
+     (lambda (n acc)
+       (cond
+         [(eq n 0) acc]
+         [t (loop (subt n 1)
+                  (cons
+                    ((label fibo
+                       (lambda (n)
+                         (cond [(eq n 0) 1]
+                               [(eq n 1) 1]
+                               [t (add (fibo (subt n 1))
+                                       (fibo (subt n 2)))])))
+                     n)
+                    acc))])))
+   10 nil)
+ '())`
+	},
+
 ];
 
 if (typeof module === "object") {
