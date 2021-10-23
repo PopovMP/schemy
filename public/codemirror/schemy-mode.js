@@ -24,14 +24,14 @@
 		const keywords = makeKeywords(
 			'\' ` , @ . define λ lambda begin let let* letrec letrec*' +
 			'and or if when unless cond case ' +
-			'display newline print ' +
+			'display newline format ' +
 			'quote quasiquote ' +
 		    'parse eval debug raise'
 		)
 
 		const builtinFunc = makeKeywords(
 			// Core lib
-			'number? boolean? null? pair?  + - * / = %  > < != >= <= % eq? ' +
+			'atom? number? boolean? null? pair?  + - * / = %  > < != >= <= % eq? ' +
 			// list
 			'list cons car cdr',
 		)

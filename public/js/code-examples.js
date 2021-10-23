@@ -68,7 +68,7 @@ const examplesList = [
 
         (solve (- n 1) a b c)
         
-        (print "Move disk from" a "to" c)
+        (format #t "Move disk from ~S to ~S\\n" a c)
         
         (solve (- n 1) b c a)))
 
@@ -94,7 +94,7 @@ const examplesList = [
 (define (check-numbers n)
     (if (< n 10)
         (begin
-            (print n 'is (odd-even n))
+            (format #t "~S is ~S\\n" n (odd-even n))
             (check-numbers (+ n 1)))))
 
 (check-numbers 0)
@@ -179,44 +179,44 @@ const examplesList = [
 (define bool (λ (cb) ((cb true) false) ))
 
 ;; Examples
-(print "one =" (int one))
+(format #t "one = ~S\\n" (int one))
 (define forty-two ((add ((mult ten) four)) two))
-(print "forty-one   =" (int (pred forty-two)))
-(print "forty-two   =" (int forty-two))
-(print "forty-three =" (int (succ forty-two)))
-(print "zero? 0"  (bool (zero? zero)))
-(print "zero? 1"  (bool (zero?  one)))
-(print "lte? 3 4" (bool ((lte? three)  four)))
-(print "lte? 4 3" (bool ((lte?  four) three)))
+(format #t "forty-one   = ~S\\n" (int (pred forty-two)))
+(format #t "forty-two   = ~S\\n" (int forty-two))
+(format #t "forty-three = ~S\\n" (int (succ forty-two)))
+(format #t "zero? 0 ~S\\n"  (bool (zero? zero)))
+(format #t "zero? 1 ~S\\n"  (bool (zero?  one)))
+(format #t "lte? 3 4 ~S\\n" (bool ((lte? three)  four)))
+(format #t "lte? 4 3 ~S\\n" (bool ((lte?  four) three)))
 
 ;; Boolean logic
-(print)
-(print "(not  true) =>" (bool (NOT  TRUE)))
-(print "(not false) =>" (bool (NOT FALSE)))
-(print)
-(print "((true  one) two) =>" (int ((TRUE  one) two)))
-(print "((false one) two) =>" (int ((FALSE one) two)))
-(print)
-(print "((and  true)  true) =>" (bool ((AND  TRUE)  TRUE)))
-(print "((and false)  true) =>" (bool ((AND FALSE)  TRUE)))
-(print "((and  true) false) =>" (bool ((AND  TRUE) FALSE)))
-(print "((and false) false) =>" (bool ((AND FALSE) FALSE)))
-(print)
-(print "((or  true)   true) =>" (bool ((OR  TRUE)  TRUE)))
-(print "((or false)   true) =>" (bool ((OR FALSE)  TRUE)))
-(print "((or  true)  false) =>" (bool ((OR  TRUE) FALSE)))
-(print "((or false)  false) =>" (bool ((OR FALSE) FALSE)))
-(print)
-(print "(((if  true) one) two) =>" (int (((IF  TRUE) one) two)))
-(print "(((if false) one) two) =>" (int (((IF FALSE) one) two)))
-(print)
+(newline)
+(format #t "(not  true) => ~S\\n" (bool (NOT  TRUE)))
+(format #t "(not false) => ~S\\n" (bool (NOT FALSE)))
+(newline)
+(format #t "((true  one) two) => ~S\\n" (int ((TRUE  one) two)))
+(format #t "((false one) two) => ~S\\n" (int ((FALSE one) two)))
+(newline)
+(format #t "((and  true)  true) => ~S\\n" (bool ((AND  TRUE)  TRUE)))
+(format #t "((and false)  true) => ~S\\n" (bool ((AND FALSE)  TRUE)))
+(format #t "((and  true) false) => ~S\\n" (bool ((AND  TRUE) FALSE)))
+(format #t "((and false) false) => ~S\\n" (bool ((AND FALSE) FALSE)))
+(newline)
+(format #t "((or  true)   true) => ~S\\n" (bool ((OR  TRUE)  TRUE)))
+(format #t "((or false)   true) => ~S\\n" (bool ((OR FALSE)  TRUE)))
+(format #t "((or  true)  false) => ~S\\n" (bool ((OR  TRUE) FALSE)))
+(format #t "((or false)  false) => ~S\\n" (bool ((OR FALSE) FALSE)))
+(newline)
+(format #t "(((if  true) one) two) => ~S\\n" (int (((IF  TRUE) one) two)))
+(format #t "(((if false) one) two) => ~S\\n" (int (((IF FALSE) one) two)))
+(newline)
 
 ;; Factorial
 (define fac (λ (n) ((((IF ((lte? n) one))
                      (λ () one))
                      (λ () ((mult n) (fac (pred n))))))))
 
-(print "factorial 5 =" (int (fac five)))
+(format #t "factorial 5 = ~S\\n" (int (fac five)))
 
 ;; Fibonacci
 (define fib (λ (n) ((((IF ((lte? n) one))
@@ -224,7 +224,7 @@ const examplesList = [
                      (λ () ((add (fib ((sub n) one)))
                                  (fib ((sub n) two))))))))
 
-(print "Fibonacci 9 =" (int (fib nine)))
+(format #t "Fibonacci 9 = ~S\\n" (int (fib nine)))
 `
     },
 

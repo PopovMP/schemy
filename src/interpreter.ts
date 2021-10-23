@@ -23,7 +23,7 @@ class Interpreter {
 
 		'display'   : this.evalDisplay,
 		'newline'   : this.evalNewline,
-		'print'     : this.evalPrint,
+		'format'    : this.evalFormat,
 
 		'quote'     : this.evalQuote,
 		'quasiquote': this.evalQuasiquote,
@@ -655,21 +655,28 @@ class Interpreter {
 		return output
 	}
 
-	// (print expr1 expr2 ...)
-	private evalPrint(expr: any[], env: any[]): void {
-		if (expr.length === 1) {
-			this.options.printer('\r\n')
+	// (format pattern args...)
+	// (format #t pattern args...)
+	private evalFormat(expr: any[], env: any[]): string | undefined {
+		const form: any[]      = this.mapExprList(expr.slice(1), env)
+		const isPrint: boolean = typeof form[0] === 'boolean' && form[0]
+		const pattern: string  = typeof form[0] === 'string' ? form[0] : form[1]
+		const args: string[]   = form.slice(typeof form[0] === 'string' ? 1 : 2)
+										.map((arg: any) => Printer.stringify(arg))
+
+		let index = 0
+
+		function replacer(_match: string): string {
+			return args[index++]
 		}
-		else if (expr.length === 2) {
-			const text: string = Printer.stringify(this.evalExpr(expr[1], env))
-			this.options.printer(text + '\r\n')
+
+		const res: string = pattern.replace(/~./g, replacer)
+
+		if (isPrint) {
+			this.options.printer(res)
 		}
-		else {
-			const text: string = this.mapExprList(expr.slice(1), env)
-				.map(Printer.stringify)
-				.join(' ')
-			this.options.printer(text + '\r\n')
-		}
+
+		return isPrint ? undefined : res
 	}
 
 	// (debug)

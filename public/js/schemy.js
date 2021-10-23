@@ -21,7 +21,7 @@ class Interpreter {
         'case': this.evalCase,
         'display': this.evalDisplay,
         'newline': this.evalNewline,
-        'print': this.evalPrint,
+        'format': this.evalFormat,
         'quote': this.evalQuote,
         'quasiquote': this.evalQuasiquote,
         'parse': this.evalParse,
@@ -485,20 +485,21 @@ class Interpreter {
         }
         return output;
     }
-    evalPrint(expr, env) {
-        if (expr.length === 1) {
-            this.options.printer('\r\n');
+    evalFormat(expr, env) {
+        const form = this.mapExprList(expr.slice(1), env);
+        const isPrint = typeof form[0] === 'boolean' && form[0];
+        const pattern = typeof form[0] === 'string' ? form[0] : form[1];
+        const args = form.slice(typeof form[0] === 'string' ? 1 : 2)
+            .map((arg) => Printer.stringify(arg));
+        let index = 0;
+        function replacer(_match) {
+            return args[index++];
         }
-        else if (expr.length === 2) {
-            const text = Printer.stringify(this.evalExpr(expr[1], env));
-            this.options.printer(text + '\r\n');
+        const res = pattern.replace(/~./g, replacer);
+        if (isPrint) {
+            this.options.printer(res);
         }
-        else {
-            const text = this.mapExprList(expr.slice(1), env)
-                .map(Printer.stringify)
-                .join(' ');
-            this.options.printer(text + '\r\n');
-        }
+        return isPrint ? undefined : res;
     }
     evalDebug(_expr, env) {
         this.isDebug = true;

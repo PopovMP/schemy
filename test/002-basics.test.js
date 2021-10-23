@@ -64,4 +64,14 @@ describe('Eval basics', function () {
 			assert.strictEqual(schemy.evaluate(`(pair? (cdr (list 1 2)))`), true)
 		})
 	})
+
+	describe('String format', function () {
+		it('(format "foo: ~S" 3) → "foo: 3"', function () {
+			assert.strictEqual(schemy.evaluate(`(format "foo: ~S" 3)`), 'foo: 3')
+		})
+
+		it('(format "foo: ~S, bar: ~S" 3 4) → "foo: 3, bar: 4"', function () {
+			assert.strictEqual(schemy.evaluate(`(format "foo: ~S, bar: ~S" 3 4)`), 'foo: 3, bar: 4')
+		})
+	})
 })
