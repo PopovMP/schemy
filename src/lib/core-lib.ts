@@ -26,7 +26,8 @@ class CoreLib implements ILib {
 		'<=': this.numLowerOrEqual,
 
 		// General comparison
-		'eq?': this.isEq,
+		'eq?'   : this.isEq,
+		'equal?': this.isEqual,
 
 		'not': this.not,
 	}
@@ -226,12 +227,21 @@ class CoreLib implements ILib {
 		return num1 <= num2
 	}
 
-	// (eq? obj1 obj2)
+	// (eq? expr1 expr2)
 	private isEq(expr: any[], env: any[]): boolean {
 		const [obj1, obj2] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
 
 		return obj1 === obj2 ||
-			   (Array.isArray(obj1) && obj1.length === 0 && Array.isArray(obj2) && obj2.length === 0)
+			(Array.isArray(obj1) && obj1.length === 0 && Array.isArray(obj2) && obj2.length === 0)
+	}
+
+	// (equal? expr1 expr2)
+	private isEqual(expr: any[], env: any[]): boolean {
+		const [obj1, obj2] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
+
+		return Array.isArray(obj1) || Array.isArray(obj2)
+			? Printer.stringify(obj1) === Printer.stringify(obj2)
+			: obj1 === obj2
 	}
 
 	// (not expr)
@@ -239,4 +249,5 @@ class CoreLib implements ILib {
 		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
 
 		return !this.inter.isTrue(obj)
-	}}
+	}
+}

@@ -2,7 +2,7 @@
 
 const assert         = require('assert')
 const {describe, it} = require('@popovmp/mocha-tiny')
-const Schemy           = require('../assets/js/schemy.js').Schemy
+const Schemy         = require('../assets/js/schemy.js').Schemy
 
 const schemy = new Schemy()
 
@@ -72,6 +72,16 @@ describe('Eval basics', function () {
 
 		it(`(list? '()) → #t`, function () {
 			assert.strictEqual(schemy.evaluate(`(list? '())`), true)
+		})
+	})
+
+	describe('equal?', function () {
+		it(`(equal? '(1 2) '(1 2 3)) → #f`, function () {
+			assert.strictEqual(schemy.evaluate(`(equal? '(1 2) '(1 2 3))`), false)
+		})
+
+		it(`(equal? '(1 2) (cons 1 (cons 2 '()))) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(equal? '(1 2) (cons 1 (cons 2 '())))`), true)
 		})
 	})
 
