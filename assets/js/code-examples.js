@@ -80,24 +80,28 @@ const examplesList = [
         name: "Mutual recursive odd or even",
         code: `;; Mutual recursive odd or even
 
-(define (odd-even n)
-    (define (is-even n)
-         (or (= n 0)
-             (is-odd (- n 1))))
-    (define (is-odd n)
-         (and (!= n 0)
-              (is-even (- n 1))))
-    (if (is-even n)
-        'even
-        'odd))
+(define (odds-evens n)
+    (letrec
+        ([is-even (lambda (n)
+                      (or (= n 0)
+                          (is-odd (- n 1))))]
+    
+         [is-odd (lambda (n)
+                     (and (> n 0)
+                          (is-even (- n 1))))]
+    
+         [loop (lambda (n odds evens)
+                   (if (< n 0)
+                       (cons odds (cons evens '()))
+                       (if (is-even n)
+                           (loop (- n 1) odds (cons n evens))
+                           (loop (- n 1) (cons n odds) evens))))])
+    
+        (loop n '() '())))
 
-(define (check-numbers n)
-    (if (< n 10)
-        (begin
-            (format #t "~S is ~S\\n" n (odd-even n))
-            (check-numbers (+ n 1)))))
-
-(check-numbers 0)
+(define res (odds-evens 29))
+(format #t "Odds : ~A\\n" (car  res))
+(format #t "Evens: ~A\\n" (cadr res))
 `
     },
 
