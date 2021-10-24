@@ -26,6 +26,8 @@ class CoreLib implements ILib {
 
 		// General comparison
 		'eq?': this.isEq,
+
+		'not': this.not,
 	}
 
 	public readonly builtinFunc: string[]
@@ -223,4 +225,10 @@ class CoreLib implements ILib {
 		return obj1 === obj2 ||
 			   (Array.isArray(obj1) && obj1.length === 0 && Array.isArray(obj2) && obj2.length === 0)
 	}
-}
+
+	// (not expr)
+	private not(expr: any[], env: any[]): boolean {
+		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
+
+		return !this.inter.isTrue(obj)
+	}}

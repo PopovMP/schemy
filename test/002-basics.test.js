@@ -65,6 +65,16 @@ describe('Eval basics', function () {
 		})
 	})
 
+	describe('not', function () {
+		it(`(not '()) → #f`, function () {
+			assert.strictEqual(schemy.evaluate(`(not '())`), false)
+		})
+
+		it(`(not #f) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(not #f)`), true)
+		})
+	})
+
 	describe('String format', function () {
 		it('(format "foo: ~S" 3) → "foo: 3"', function () {
 			assert.strictEqual(schemy.evaluate(`(format "foo: ~S" 3)`), 'foo: 3')

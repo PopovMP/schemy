@@ -1014,6 +1014,7 @@ class CoreLib {
         '<': this.numLower,
         '<=': this.numLowerOrEqual,
         'eq?': this.isEq,
+        'not': this.not,
     };
     builtinFunc;
     builtinHash = {};
@@ -1138,6 +1139,10 @@ class CoreLib {
         const [obj1, obj2] = this.inter.evalArgs(['any', 'any'], expr, env);
         return obj1 === obj2 ||
             (Array.isArray(obj1) && obj1.length === 0 && Array.isArray(obj2) && obj2.length === 0);
+    }
+    not(expr, env) {
+        const [obj] = this.inter.evalArgs(['any'], expr, env);
+        return !this.inter.isTrue(obj);
     }
 }
 class ExtLib {
