@@ -8,9 +8,9 @@ function initialize() {
 		matchBrackets : true,
 		mode          : 'schemy-mode',
 		theme         : 'schemy',
-		indentUnit    : 2,
+		indentUnit    : 4,
 		indentWithTabs: false,
-		tabSize       : 2,
+		tabSize       : 4,
 	}
 
 	app.schemy                = new Schemy()
@@ -28,12 +28,14 @@ function initialize() {
 	setDefaultCode()
 
 	document.addEventListener('keydown', document_keydown)
+	window.addEventListener('beforeunload', window_beforeUnload)
 }
 
 function setExamples() {
 	const exampleNames = examplesList.map(function (e) {
 		return e.name
 	})
+
 	for (let i = 0; i < exampleNames.length; i++) {
 		const name        = exampleNames[i]
 		const exampleLink = '<a href="#" class="example-link">' + name + '</a><br />'
@@ -48,7 +50,15 @@ function setExamples() {
 }
 
 function setDefaultCode() {
-	app.editor.getDoc().setValue(examplesList[0].code)
+	try {
+		const code = JSON.parse(localStorage.getItem('schemeCode'))
+		app.editor.getDoc().setValue(code || examplesList[0].code)
+	}
+	catch (e) {
+		localStorage.removeItem('schemeCode')
+		app.editor.getDoc().setValue(examplesList[0].code)
+	}
+
 	clearOutput()
 }
 
@@ -131,4 +141,9 @@ function insertTextInEditor(str) {
 
 		doc.replaceRange(str, pos)
 	}
+}
+
+function window_beforeUnload() {
+	const code = app.editor.getDoc().getValue()
+	localStorage.setItem('schemeCode', JSON.stringify(code))
 }
