@@ -65,6 +65,16 @@ describe('Eval basics', function () {
 		})
 	})
 
+	describe('list?', function () {
+		it(`(list? 1) → #f`, function () {
+			assert.strictEqual(schemy.evaluate(`(list? 1)`), false)
+		})
+
+		it(`(list? '()) → #t`, function () {
+			assert.strictEqual(schemy.evaluate(`(list? '())`), true)
+		})
+	})
+
 	describe('not', function () {
 		it(`(not '()) → #f`, function () {
 			assert.strictEqual(schemy.evaluate(`(not '())`), false)

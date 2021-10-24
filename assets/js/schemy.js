@@ -1002,6 +1002,7 @@ class CoreLib {
         'string?': this.isString,
         'null?': this.isNull,
         'pair?': this.isPair,
+        'list?': this.isList,
         '+': this.add,
         '-': this.subtract,
         '*': this.multiply,
@@ -1051,6 +1052,10 @@ class CoreLib {
     isPair(expr, env) {
         const [obj] = this.inter.evalArgs(['any'], expr, env);
         return Array.isArray(obj) && obj.length > 0;
+    }
+    isList(expr, env) {
+        const [obj] = this.inter.evalArgs(['any'], expr, env);
+        return Array.isArray(obj);
     }
     add(expr, env) {
         if (expr.length === 1) {

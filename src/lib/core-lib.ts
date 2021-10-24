@@ -8,6 +8,7 @@ class CoreLib implements ILib {
 		'string?' : this.isString,
 		'null?'   : this.isNull,
 		'pair?'   : this.isPair,
+		'list?'   : this.isList,
 
 		// Primitive numerical procedures
 		'+': this.add,
@@ -87,6 +88,13 @@ class CoreLib implements ILib {
 		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
 
 		return Array.isArray(obj) && obj.length > 0
+	}
+
+	// (list? expr)
+	private isList(expr: any[], env: any[]): boolean {
+		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
+
+		return Array.isArray(obj)
 	}
 
 	// (+ num1 num2 ...)
