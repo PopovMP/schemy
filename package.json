@@ -1,12 +1,11 @@
 {
   "name": "schemy",
   "version": "0.1.0",
-  "main": "./bin/schemy.js",
-  "description": "Schemy - a minimal Schem.",
+  "main": "./assets/is/schemy.js",
+  "description": "Schemy - a subset of Scheme",
   "keywords": [
-    "programming language",
-    "language",
-    "scheme"
+    "scheme",
+    "scheme-interpreter"
   ],
   "author": {
     "name": "Miroslav Popov",
@@ -15,7 +14,7 @@
   "homepage": "https://schemy.forexsb.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/popovmp/schemy"
+    "url": "https://popovmp.github.io/schemy/"
   },
   "devDependencies": {
     "@types/node": "^16.11.1",
@@ -26,7 +25,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "buld": "tsc",
     "test": "mocha-tiny"
   }
 }
