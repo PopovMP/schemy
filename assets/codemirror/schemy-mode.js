@@ -33,7 +33,7 @@
 			// Core lib
 			'atom? number? boolean? null? pair?  + - * / = %  > < != >= <= % eq? ' +
 			// list
-			'list cons car cdr',
+			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr',
 		)
 
 		const indentKeys = makeKeywords(

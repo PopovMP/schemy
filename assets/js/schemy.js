@@ -1199,43 +1199,67 @@ class ListLib {
             : [obj1, obj2];
     }
     car(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][0];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || obj.length === 0) {
+            throw `Error in 'car': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[0];
     }
     cdr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
         if (!Array.isArray(obj) || obj.length === 0) {
-            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+            throw `Error in 'cdr': Incorrect list structure: ${Printer.stringify(obj)}`;
         }
         return obj.slice(1);
     }
     caar(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][0][0];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
+            throw `Error in 'caar': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[0][0];
     }
     cdar(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
         if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
-            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+            throw `Error in 'cdar': Incorrect list structure: ${Printer.stringify(obj)}`;
         }
-        return obj[0].length === 2 ? obj[0][1] : obj[0].slice(1);
+        return obj[0].slice(1);
     }
     cadr(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][1];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || obj.length < 2) {
+            throw `Error in 'cadr': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[1];
     }
     cddr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || !Array.isArray(obj[1]) || obj[1].length === 0) {
-            throw 'Error: Required a pair. Given: ' + Printer.stringify(obj);
+        if (!Array.isArray(obj) || obj.length < 2) {
+            throw `Error in 'cddr': Incorrect list structure: ${Printer.stringify(obj)}`;
         }
-        return obj[1].slice(1);
+        return obj.slice(2);
     }
     caddr(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][2];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || obj.length < 3) {
+            throw `Error in 'caddr': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[2];
     }
     cadddr(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][3];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || obj.length < 4) {
+            throw `Error in 'cadddr': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[3];
     }
     caddddr(expr, env) {
-        return this.inter.evalArgs(['list'], expr, env)[0][4];
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        if (!Array.isArray(obj) || obj.length < 5) {
+            throw `Error in 'caddddr': Incorrect list structure: ${Printer.stringify(obj)}`;
+        }
+        return obj[4];
     }
 }
 class StringLib {
