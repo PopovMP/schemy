@@ -105,6 +105,87 @@ const examplesList = [
 `
     },
 
+	{
+		name: "Diamond Kata",
+		code: `;; Diamond Kata
+; ___A___
+; __B_B__
+; _C___C_
+; D_____D
+; _C___C_
+; __B_B__
+; ___A___
+
+;; Generic functions
+
+(define (reverse-list lst)
+    (define (loop rest acc)
+        (if (eq? rest '())
+            acc
+            (loop (cdr rest)
+                  (cons (car rest) acc))))
+    (loop lst '()))
+
+(define (join-lists lst1 lst2)
+     (define (loop rest acc)
+         (if (eq? rest '())
+             acc
+             (loop (cdr rest)
+                   (cons (car rest)
+                         acc))))
+     (loop (reverse-list lst1)
+           lst2))
+
+(define (display-list lst)
+    (define (loop rest)
+        (when (not (eq? rest '()))
+              (display (car rest))
+              (newline)
+              (loop (cdr rest))))
+    (loop lst))
+
+; Diamond functions
+
+(define (make-line half-line)
+    (join-lists half-line
+                (cdr (reverse-list half-line))))
+
+(define (make-half-line lst n)
+    (define (loop i rest acc)
+        (if (eq? rest '())
+            acc
+           (if (= i n)
+               (loop (+ i 1)
+                     (cdr rest)
+                     (cons (car rest) acc))
+               (loop (+ i 1)
+                     (cdr rest)
+                     (cons "_" acc)))))
+    (loop 0 lst '()))
+
+(define (make-diamond lines)
+    (join-lists (reverse-list lines)
+                (cdr lines)))
+
+(define (make-half-diamond lst)
+    (define (loop i rest acc)
+        (if (eq? rest '())
+            acc
+            (loop (+ i 1)
+                  (cdr rest)
+                  (cons (make-line (make-half-line lst i))
+                        acc))))
+    (loop 0 lst '()))
+
+; Run
+
+(display-list
+    (make-diamond
+        (make-half-diamond
+            (list "A" "B" "C" "D"))))
+`
+	},
+
     {
         name: "Y combinator - factorial",
         code: `;; Y combinator - factorial
