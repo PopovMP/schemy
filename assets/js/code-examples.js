@@ -34,29 +34,19 @@ const examplesList = [
             acc))
     (loop lst (list)))
 
-(define (list-remove-duplicates lst)
-    (define (loop rest last acc)
+(define (eliminate-duplicates lst)
+    (define (loop rest acc)
         (if (pair? rest)
-            (if (eq? (car rest) last)
-                (loop (cdr rest) last acc)
+            (if (eq? (car rest) (car acc))
+                (loop (cdr rest) acc)
                 (loop (cdr rest)
-                      (car rest)
                       (cons (car rest) acc)))
             (list-reverse acc)))
     (loop lst
-          (car lst)
-          (cons (car lst) (list))))
+          (list (car lst))))
 
 (define lst (list 1 1 2 3 4 5 5 6 7 8 8 8 9 9))
-
-(define (list-print lst)
-   (if (pair? lst)
-       (begin
-           (display (car lst))
-           (list-print (cdr lst)))
-       (list)))
-
-(list-print (list-remove-duplicates lst))
+(format #t "~S\\n" (eliminate-duplicates lst))
 `
     },
     {
