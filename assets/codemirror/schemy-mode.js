@@ -33,7 +33,7 @@
 			// Core lib
 			'atom? number? boolean? null? pair?  + - * / = %  > < != >= <= % eq? ' +
 			// list
-			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr',
+			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr length make-list reverse',
 		)
 
 		const indentKeys = makeKeywords(

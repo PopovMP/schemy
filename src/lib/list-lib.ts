@@ -14,6 +14,10 @@ class ListLib implements ILib {
 		'caddr'   : this.caddr,
 		'cadddr'  : this.cadddr,
 		'caddddr' : this.caddddr,
+
+		'length'    : this.length,
+		'make-list' : this.makeList,
+		'reverse'   : this.reverse,
 	}
 
 	public readonly builtinFunc: string[]
@@ -53,7 +57,7 @@ class ListLib implements ILib {
 
 	// (car expr)
 	private car(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length === 0) {
 			throw `Error in 'car': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -64,7 +68,7 @@ class ListLib implements ILib {
 
 	// (cdr expr)
 	private cdr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length === 0) {
 			throw `Error in 'cdr': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -75,7 +79,7 @@ class ListLib implements ILib {
 
 	// (caar expr)
 	private caar(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
 			throw `Error in 'caar': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -86,7 +90,7 @@ class ListLib implements ILib {
 
 	// (cdar expr)
 	private cdar(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
 			throw `Error in 'cdar': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -97,7 +101,7 @@ class ListLib implements ILib {
 
 	// (cadr expr)
 	private cadr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length < 2) {
 			throw `Error in 'cadr': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -108,7 +112,7 @@ class ListLib implements ILib {
 
 	// (cddr expr)
 	private cddr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length < 2) {
 			throw `Error in 'cddr': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -119,7 +123,7 @@ class ListLib implements ILib {
 
 	// (caddr expr)
 	private caddr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length < 3) {
 			throw `Error in 'caddr': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -130,7 +134,7 @@ class ListLib implements ILib {
 
 	// (cadddr expr)
 	private cadddr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length < 4) {
 			throw `Error in 'cadddr': Incorrect list structure: ${Printer.stringify(obj)}`
@@ -141,12 +145,38 @@ class ListLib implements ILib {
 
 	// (caddddr expr)
 	private caddddr(expr: any[], env: any[]): any | any[] {
-		const [obj] = <[any]>this.inter.evalArgs(['list'], expr, env)
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
 		if (!Array.isArray(obj) || obj.length < 5) {
 			throw `Error in 'caddddr': Incorrect list structure: ${Printer.stringify(obj)}`
 		}
 
 		return obj[4]
+	}
+
+	// (length expr)
+	private length(expr: any[], env: any[]): number {
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
+
+		return obj.length
+	}
+
+	// (reverse expr)
+	private reverse(expr: any[], env: any[]): any[] {
+		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
+
+		return obj.reverse()
+	}
+
+	// (make-list size fill)
+	private makeList(expr: any[], env: any[]): any[] {
+		const [size, fill] = <[number, any]>this.inter.evalArgs(['number', 'scalar'], expr, env)
+
+		const res = []
+		for (let i = 0; i < size; i++) {
+			res.push(fill)
+		}
+
+		return res
 	}
 }
