@@ -1188,6 +1188,9 @@ class ListLib {
         'caddr': this.caddr,
         'cadddr': this.cadddr,
         'caddddr': this.caddddr,
+        'length': this.length,
+        'make-list': this.makeList,
+        'reverse': this.reverse,
     };
     builtinFunc;
     builtinHash = {};
@@ -1277,6 +1280,22 @@ class ListLib {
             throw `Error in 'caddddr': Incorrect list structure: ${Printer.stringify(obj)}`;
         }
         return obj[4];
+    }
+    length(expr, env) {
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        return obj.length;
+    }
+    reverse(expr, env) {
+        const [obj] = this.inter.evalArgs(['list'], expr, env);
+        return obj.reverse();
+    }
+    makeList(expr, env) {
+        const [size, fill] = this.inter.evalArgs(['number', 'scalar'], expr, env);
+        const res = [];
+        for (let i = 0; i < size; i++) {
+            res.push(fill);
+        }
+        return res;
     }
 }
 class StringLib {

@@ -26,14 +26,6 @@ const examplesList = [
         name: "Eliminate consecutive duplicates",
         code: `;; Eliminate consecutive duplicates
 
-(define (list-reverse lst)
-    (define (loop rest acc)
-        (if (pair? rest)
-            (loop (cdr rest)
-                  (cons (car rest) acc))
-            acc))
-    (loop lst (list)))
-
 (define (eliminate-duplicates lst)
     (define (loop rest acc)
         (if (pair? rest)
@@ -41,7 +33,7 @@ const examplesList = [
                 (loop (cdr rest) acc)
                 (loop (cdr rest)
                       (cons (car rest) acc)))
-            (list-reverse acc)))
+            (reverse acc)))
     (loop lst
           (list (car lst))))
 
@@ -49,6 +41,38 @@ const examplesList = [
 (format #t "~S\\n" (eliminate-duplicates lst))
 `
     },
+
+	{
+		name: "100 Doors",
+		code: `;; 100 Doors
+;; http://www.rosettacode.org/wiki/100_doors
+
+(define (toggle nth doors)
+    (define (loop n rest acc)
+        (if (pair? rest)
+            (if (= n nth)
+                (loop 1
+                      (cdr rest)
+                      (cons (if (eq? (car rest) 1) 0 1) acc))
+                (loop (+ n 1)
+                      (cdr rest)
+                      (cons (car rest) acc)))
+            (reverse acc)))
+    (loop 1 doors (list)))
+
+(define (run doors)
+    (define (loop n acc)
+        (if (<= n (length doors))
+            (loop (+ n 1)
+                  (toggle n acc))
+            acc))
+    (loop 1 doors))
+
+(define lst (make-list 100 0))
+(format #t "~S\\n" (run lst))
+`
+	},
+
     {
         name: "Hanoi tower",
         code: `;; Hanoi tower
