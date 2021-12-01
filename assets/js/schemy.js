@@ -117,6 +117,18 @@ class Interpreter {
     isTrue(obj) {
         return typeof obj !== 'boolean' || obj;
     }
+    evalCallArgs(expr, env) {
+        const args = Array.isArray(expr) && expr[0] === 'list'
+            ? expr.slice(1)
+            : this.evalExpr(expr, env);
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+            if (typeof arg === 'string') {
+                args[i] = ['string', arg];
+            }
+        }
+        return args;
+    }
     addToEnv(symbol, value, modifier, env) {
         if (typeof value === 'undefined') {
             throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
@@ -266,17 +278,9 @@ class Interpreter {
         return res;
     }
     evalApply(expr, env) {
-        const procId = expr[1];
-        const callArgs = Array.isArray(expr[2]) && expr[2][0] === 'list'
-            ? expr[2].slice(1)
-            : this.evalExpr(expr[2], env);
-        for (let i = 0; i < callArgs.length; i++) {
-            const arg = callArgs[i];
-            if (typeof arg === 'string') {
-                callArgs[i] = ['string', arg];
-            }
-        }
-        return this.evalExpr([procId, ...callArgs], env);
+        const proc = expr[1];
+        const args = this.evalCallArgs(expr[2], env);
+        return this.evalExpr([proc, ...args], env);
     }
     evalLet(expr, env) {
         if (expr.length < 3) {
@@ -1180,6 +1184,7 @@ class ListLib {
         'length': this.length,
         'make-list': this.makeList,
         'reverse': this.reverse,
+        'map': this.map,
     };
     builtinFunc;
     builtinHash = {};
@@ -1285,6 +1290,11 @@ class ListLib {
             res.push(fill);
         }
         return res;
+    }
+    map(expr, env) {
+        const proc = expr[1];
+        const args = this.inter.evalCallArgs(expr[2], env);
+        return args.map(item => this.inter.evalExpr([proc, item], env));
     }
 }
 class StringLib {

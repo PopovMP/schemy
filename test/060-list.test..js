@@ -29,22 +29,27 @@ describe('List declaration', function () {
 		})
 	})
 
-	describe('cons tests', function() {
-		it('cons vs list 1', function () {
+	describe('list vs cons tests', function() {
+		it('list vs cons 1', function () {
 			assert.deepStrictEqual(schemy.evaluate('(list 1 2)'), schemy.evaluate(`(cons 1 2)`))
 		})
 
-		it('cons vs list 2', function () {
+		it('list vs cons 2', function () {
 			assert.deepStrictEqual(schemy.evaluate('(list 1)'), schemy.evaluate(`(cons 1 '())`))
 		})
 
-		it('cons vs list 3', function () {
+		it('list vs cons 3', function () {
 			assert.deepStrictEqual(schemy.evaluate('(list 1 2)'), schemy.evaluate(`(cons 1 (cons 2'()))`))
 		})
 
-		it('cons vs list 4', function () {
+		it('list vs cons 4', function () {
 			assert.deepStrictEqual(schemy.evaluate('(list (list 1 2) 3 4)'),
 				schemy.evaluate(`(cons (cons 1 (cons 2'())) (cons 3 (cons 4'())))`))
+		})
+
+		it('list vs cons 5', function () {
+			assert.deepStrictEqual(schemy.evaluate('(list "a" "b" "c")'),
+				schemy.evaluate(`(cons "a" (cons "b" (cons "c" '())))`))
 		})
 	})
 
@@ -108,5 +113,36 @@ describe('List declaration', function () {
 		it(`(length 42) -> Error`, function () {
 			assert.deepStrictEqual(schemy.evaluate(`(length 42)`), "Error: 'length' requires list. Given: number 42")
 		})
+	})
+
+	describe('map tests', function() {
+		it(`(map double (list 4 5 6))`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`
+			(define (double n) (+ n n))
+			(map double (list 4 5 6)) 			`), [8, 10, 12])
+		})
+
+		it(`(map double lst)`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`
+			(define lst '(4 5 6))
+			(define (double n) (+ n n))
+			(map double lst) 			`), [8, 10, 12])
+		})
+
+		it(`(map string-length list-of-strings)`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`
+			(map string-length (list "list" "of" "strings")) `), [4, 2, 7])
+		})
+
+		it(`(map string-length string-expr)`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`
+			(map string-length (list (string-append "Hello" " world!"))) `), [12])
+		})
+
+		it(`(map string-length (cons str...))`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`
+			(map string-length (cons "a" (cons "ab" (cons "abc" '())))) `), [1, 2, 3])
+		})
+
 	})
 })

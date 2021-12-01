@@ -18,6 +18,8 @@ class ListLib implements ILib {
 		'length'    : this.length,
 		'make-list' : this.makeList,
 		'reverse'   : this.reverse,
+
+		'map' : this.map,
 	}
 
 	public readonly builtinFunc: string[]
@@ -178,5 +180,13 @@ class ListLib implements ILib {
 		}
 
 		return res
+	}
+
+	// (map proc lst)
+	private map(expr: any[], env: any[]): any[] {
+		const proc: any   = expr[1]
+		const args: any[] = this.inter.evalCallArgs(expr[2], env)
+
+		return args.map( item => this.inter.evalExpr([proc, item], env) )
 	}
 }

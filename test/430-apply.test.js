@@ -33,8 +33,8 @@ describe('apply', function () {
 
 	it('apply define lambda with list of args string', function () {
 		assert.strictEqual(easl.evaluate(`
-            (define concat (lambda (a b c) (string-append a b c)))
-            (apply concat '(hello " " world))     `), 'hello world')
+            (define (concat-three a b c) (string-append a b c))
+            (apply concat-three '("hello" " " "world"))    `), 'hello world')
 	})
 
 	it('apply function with empty list of args', function () {

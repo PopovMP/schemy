@@ -150,6 +150,21 @@ class Interpreter {
 		return typeof obj !== 'boolean' || obj
 	}
 
+	public evalCallArgs(expr: any, env: any[]): any[] {
+		const args: any[] = Array.isArray(expr) && expr[0] === 'list'
+			? expr.slice(1)
+			: this.evalExpr(expr, env)
+
+		for (let i: number = 0; i < args.length; i++) {
+			const arg: any = args[i]
+			if (typeof arg === 'string') {
+				args[i] = ['string', arg]
+			}
+		}
+
+		return args
+	}
+
 	private addToEnv(symbol: string, value: any, modifier: string, env: any[]): void {
 		if (typeof value === 'undefined') {
 			throw `Error: cannot set unspecified value to symbol: ${symbol}.`
@@ -351,20 +366,10 @@ class Interpreter {
 
 	// (apply symbol (list arg*) | expr)
 	private evalApply(expr: any[], env: any[]): any {
-		const procId: string  = expr[1]
+		const proc: any   = expr[1]
+		const args: any[] = this.evalCallArgs(expr[2], env)
 
-		const callArgs: any[] = Array.isArray(expr[2]) && expr[2][0] === 'list'
-			? expr[2].slice(1)
-			: this.evalExpr(expr[2], env)
-
-		for (let i: number = 0; i < callArgs.length; i++) {
-			const arg: any = callArgs[i]
-			if (typeof arg === 'string') {
-				callArgs[i] = ['string', arg]
-			}
-		}
-
-		return this.evalExpr([procId, ...callArgs], env)
+		return this.evalExpr([proc, ...args], env)
 	}
 
 	// (let ([name value]+) expr+)
