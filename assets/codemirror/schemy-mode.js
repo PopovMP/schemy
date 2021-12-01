@@ -22,7 +22,8 @@
 		const constants = makeKeywords('\'() #t #f #args #name')
 
 		const keywords = makeKeywords(
-			'\' ` , @ . define λ lambda begin let let* letrec letrec* ' +
+			'\' ` , @ . define λ lambda begin apply ' +
+			'let let* letrec letrec* ' +
 			'and or if when unless cond case ' +
 			'display newline format ' +
 			'quote quasiquote ' +
@@ -31,9 +32,17 @@
 
 		const builtinFunc = makeKeywords(
 			// Core lib
-			'atom? number? boolean? null? pair?  + - * / = %  > < != >= <= % eq? ' +
+			'atom? boolean? number? string? null? pair? list? ' +
+			'+ - * / %  = != > >= < <= ' +
+			'eq? equal? not' +
+
 			// list
-			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr length make-list reverse',
+			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr ' +
+			'append length list-ref list-tail make-list map reverse' +
+
+			// list
+			'string string-append string-length string->number string->uppercase ' +
+			'string->downcase'
 		)
 
 		const indentKeys = makeKeywords(

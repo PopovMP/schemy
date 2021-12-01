@@ -2,6 +2,7 @@ class ListLib implements ILib {
 	private readonly inter: Interpreter
 	private readonly methods: Record<string, (expr: any[], env: any[]) => any> = {
 		'list': this.list,
+
 		'cons': this.cons,
 		'car' : this.car,
 		'cdr' : this.cdr,
@@ -15,12 +16,13 @@ class ListLib implements ILib {
 		'cadddr'  : this.cadddr,
 		'caddddr' : this.caddddr,
 
-		'append'    : this.append,
-		'length'    : this.length,
-		'make-list' : this.makeList,
-		'reverse'   : this.reverse,
-
-		'map' : this.map,
+		'append'   : this.append,
+		'length'   : this.length,
+		'list-ref' : this.listRef,
+		'list-tail': this.listTail,
+		'make-list': this.makeList,
+		'map'      : this.map,
+		'reverse'  : this.reverse,
 	}
 
 	public readonly builtinFunc: string[]
@@ -188,6 +190,20 @@ class ListLib implements ILib {
 		}
 
 		return res
+	}
+
+	// (list-tail list k)
+	private listTail(expr: any[], env: any[]): any[] {
+		const [lst, k] = <[any[], number]>this.inter.evalArgs(['list', 'number'], expr, env)
+
+		return lst.slice(k)
+	}
+
+	// (list-ref list k)
+	private listRef(expr: any[], env: any[]): any[] {
+		const [lst, k] = <[any[], number]>this.inter.evalArgs(['list', 'number'], expr, env)
+
+		return lst[k]
 	}
 
 	// (map proc lst)

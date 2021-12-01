@@ -1183,9 +1183,11 @@ class ListLib {
         'caddddr': this.caddddr,
         'append': this.append,
         'length': this.length,
+        'list-ref': this.listRef,
+        'list-tail': this.listTail,
         'make-list': this.makeList,
-        'reverse': this.reverse,
         'map': this.map,
+        'reverse': this.reverse,
     };
     builtinFunc;
     builtinHash = {};
@@ -1295,6 +1297,14 @@ class ListLib {
             res.push(fill);
         }
         return res;
+    }
+    listTail(expr, env) {
+        const [lst, k] = this.inter.evalArgs(['list', 'number'], expr, env);
+        return lst.slice(k);
+    }
+    listRef(expr, env) {
+        const [lst, k] = this.inter.evalArgs(['list', 'number'], expr, env);
+        return lst[k];
     }
     map(expr, env) {
         const proc = expr[1];
