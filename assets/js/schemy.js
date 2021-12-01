@@ -66,6 +66,7 @@ class Interpreter {
         switch (typeof expr) {
             case 'number':
             case 'boolean':
+            case 'undefined':
                 return expr;
             case 'string':
                 return this.lookup(expr, env);
@@ -344,25 +345,34 @@ class Interpreter {
         switch (expr.length) {
             case 1: return true;
             case 2: return this.evalExpr(expr[1], env);
-            case 3: return this.evalExpr(expr[1], env) && this.evalExpr(expr[2], env);
+            case 3: {
+                const val = this.evalExpr(expr[1], env);
+                return this.isTrue(val) ? this.evalExpr(expr[2], env) : val;
+            }
+            default: {
+                const val = this.evalExpr(expr[1], env);
+                return this.isTrue(val) ? this.evalAnd(expr.slice(1), env) : val;
+            }
         }
-        return this.evalExpr(expr[1], env) && this.evalAnd(expr.slice(1), env);
     }
     evalOr(expr, env) {
         switch (expr.length) {
             case 1: return false;
             case 2: return this.evalExpr(expr[1], env);
-            case 3: return this.evalExpr(expr[1], env) || this.evalExpr(expr[2], env);
+            case 3: {
+                const val = this.evalExpr(expr[1], env);
+                return this.isTrue(val) ? val : this.evalExpr(expr[2], env);
+            }
+            default: {
+                const val = this.evalExpr(expr[1], env);
+                return this.isTrue(val) ? val : this.evalOr(expr.slice(1), env);
+            }
         }
-        return this.evalExpr(expr[1], env) || this.evalOr(expr.slice(1), env);
     }
     evalIf(expr, env) {
-        const test = this.evalExpr(expr[1], env);
-        return this.isTrue(test)
+        return this.isTrue(this.evalExpr(expr[1], env))
             ? this.evalExpr(expr[2], env)
-            : expr.length === 4
-                ? this.evalExpr(expr[3], env)
-                : undefined;
+            : this.evalExpr(expr[3], env);
     }
     evalUnless(expr, env) {
         if (expr.length === 1) {
