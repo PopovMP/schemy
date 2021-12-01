@@ -63,10 +63,6 @@ class Interpreter {
         return res;
     }
     evalExpr(expr, env) {
-        switch (expr) {
-            case 'true': return true;
-            case 'false': return false;
-        }
         switch (typeof expr) {
             case 'number':
             case 'boolean':
@@ -276,17 +272,8 @@ class Interpreter {
             : this.evalExpr(expr[2], env);
         for (let i = 0; i < callArgs.length; i++) {
             const arg = callArgs[i];
-            if (typeof arg === 'string' && !['true', 'false'].includes(arg)) {
+            if (typeof arg === 'string') {
                 callArgs[i] = ['string', arg];
-            }
-            else if (arg === true) {
-                callArgs[i] = 'true';
-            }
-            else if (arg === false) {
-                callArgs[i] = 'false';
-            }
-            else if (arg === null) {
-                callArgs[i] = "'()";
             }
         }
         return this.evalExpr([procId, ...callArgs], env);
@@ -696,8 +683,6 @@ class Parser {
     parse(codeText) {
         const fixedText = codeText
             .replace(/λ/g, 'lambda')
-            .replace(/#t/g, 'true')
-            .replace(/#f/g, 'false')
             .replace(/'\([ \t\r\n]*\)/g, '\'()')
             .replace(/\(string[ \t\r\n]*\)/g, '""')
             .replace(/\\n/g, '\n')
@@ -730,7 +715,11 @@ class Parser {
             if (lexeme === '') {
                 return;
             }
-            output.push(this.isTextNumber(lexeme) ? Number(lexeme) : lexeme);
+            const value = this.isTextNumber(lexeme) ? Number(lexeme)
+                : lexeme === '#t' ? true
+                    : lexeme === '#f' ? false
+                        : lexeme;
+            output.push(value);
         };
         for (let i = 0, lexeme = ''; i < code.length; i++) {
             const ch = code[i];

@@ -275,7 +275,7 @@ const examplesList = [
 (define int  (λ (cn) ((cn (λ (n) (+ n 1))) 0)))
 
 ;; Converts a Church boolean to bool
-(define bool (λ (cb) ((cb true) false) ))
+(define bool (λ (cb) ((cb #t) #f) ))
 
 ;; Examples
 (format #t "one = ~S\\n" (int one))

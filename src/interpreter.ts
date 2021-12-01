@@ -80,12 +80,6 @@ class Interpreter {
 	}
 
 	public evalExpr(expr: any | any[], env: any[]): any {
-		// Constants
-		switch (expr) {
-			case 'true'  : return true
-			case 'false' : return false
-		}
-
 		// Types
 		switch (typeof expr) {
 			case 'number'  :
@@ -365,17 +359,8 @@ class Interpreter {
 
 		for (let i: number = 0; i < callArgs.length; i++) {
 			const arg: any = callArgs[i]
-			if (typeof arg === 'string' && !['true', 'false'].includes(arg)) {
+			if (typeof arg === 'string') {
 				callArgs[i] = ['string', arg]
-			}
-			else if (arg === true) {
-				callArgs[i] = 'true'
-			}
-			else if (arg === false) {
-				callArgs[i] = 'false'
-			}
-			else if (arg === null) {
-				callArgs[i] = "'()"
 			}
 		}
 

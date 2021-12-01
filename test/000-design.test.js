@@ -41,7 +41,7 @@ describe('EASL design', function () {
 	})
 
 	describe('boolean false', function () {
-		it('false', function () {
+		it('#f', function () {
 			assert.strictEqual(schemy.evaluate(`(if #f 1 2)`), 2)
 		})
 	})

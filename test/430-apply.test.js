@@ -126,7 +126,7 @@ describe('apply', function () {
 
 	it('apply or with defined list of booleans 1', function () {
 		assert.strictEqual(easl.evaluate(`
-            (define lst '(true true))
+            (define lst '(#f #t))
             (apply or lst)                            `), true)
 	})
 
@@ -174,8 +174,8 @@ describe('apply', function () {
 
 	it('apply builtin function with list of boolean true', function () {
 		assert.strictEqual(easl.evaluate(`
-            (define t1 true)
-            (define t2 true)
+            (define t1 #t)
+            (define t2 #t)
             (define t3 42)
             (define lst (list t1 t2 t3))
             (apply and lst)                            `), 42)

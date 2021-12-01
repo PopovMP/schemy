@@ -9,8 +9,6 @@ class Parser {
 	public parse(codeText: string): any[] {
 		const fixedText = codeText
 			.replace(/λ/g, 'lambda')
-			.replace(/#t/g, 'true')
-			.replace(/#f/g, 'false')
 			.replace(/'\([ \t\r\n]*\)/g, '\'()')
 			.replace(/\(string[ \t\r\n]*\)/g, '""')
 			.replace(/\\n/g, '\n')
@@ -53,7 +51,13 @@ class Parser {
 			if (lexeme === '') {
 				return
 			}
-			output.push(this.isTextNumber(lexeme) ? Number(lexeme) : lexeme)
+
+			const value = this.isTextNumber(lexeme) ? Number(lexeme)
+								: lexeme === '#t' ? true
+								: lexeme === '#f' ? false
+								: lexeme
+
+			output.push(value)
 		}
 
 		for (let i = 0, lexeme = ''; i < code.length; i++) {
