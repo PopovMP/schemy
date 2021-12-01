@@ -15,6 +15,7 @@ class ListLib implements ILib {
 		'cadddr'  : this.cadddr,
 		'caddddr' : this.caddddr,
 
+		'append'    : this.append,
 		'length'    : this.length,
 		'make-list' : this.makeList,
 		'reverse'   : this.reverse,
@@ -156,18 +157,25 @@ class ListLib implements ILib {
 		return obj[4]
 	}
 
+	// (append list expr)
+	private append(expr: any[], env: any[]): any[] {
+		const [list, item] = <[any[], any]>this.inter.evalArgs(['list', 'any'], expr, env)
+
+		return list.length === 0 ? item : list.concat(item)
+	}
+
 	// (length expr)
 	private length(expr: any[], env: any[]): number {
-		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
+		const [list] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
-		return obj.length
+		return list.length
 	}
 
 	// (reverse expr)
 	private reverse(expr: any[], env: any[]): any[] {
-		const [obj] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
+		const [list] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
-		return obj.reverse()
+		return list.reverse()
 	}
 
 	// (make-list size fill)

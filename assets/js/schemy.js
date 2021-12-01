@@ -1181,6 +1181,7 @@ class ListLib {
         'caddr': this.caddr,
         'cadddr': this.cadddr,
         'caddddr': this.caddddr,
+        'append': this.append,
         'length': this.length,
         'make-list': this.makeList,
         'reverse': this.reverse,
@@ -1275,13 +1276,17 @@ class ListLib {
         }
         return obj[4];
     }
+    append(expr, env) {
+        const [list, item] = this.inter.evalArgs(['list', 'any'], expr, env);
+        return list.length === 0 ? item : list.concat(item);
+    }
     length(expr, env) {
-        const [obj] = this.inter.evalArgs(['list'], expr, env);
-        return obj.length;
+        const [list] = this.inter.evalArgs(['list'], expr, env);
+        return list.length;
     }
     reverse(expr, env) {
-        const [obj] = this.inter.evalArgs(['list'], expr, env);
-        return obj.reverse();
+        const [list] = this.inter.evalArgs(['list'], expr, env);
+        return list.reverse();
     }
     makeList(expr, env) {
         const [size, fill] = this.inter.evalArgs(['number', 'scalar'], expr, env);

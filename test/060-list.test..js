@@ -115,6 +115,24 @@ describe('List declaration', function () {
 		})
 	})
 
+	describe('append tests', function() {
+		it(`(append '(x) '(y))`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`(append '(x) '(y))`), ['x', 'y'])
+		})
+
+		it(`(append '(a) '(b c d))`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`(append '(a) '(b c d))`), ['a', 'b', 'c', 'd'])
+		})
+
+		it(`(append '(a (b)) '((c)))`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`(append '(a (b)) '((c)))`), ['a', ['b'], ['c']])
+		})
+
+		it(`(append '() "a")`, function () {
+			assert.deepStrictEqual(schemy.evaluate(`(append '() "a")`), 'a')
+		})
+	})
+
 	describe('map tests', function() {
 		it(`(map double (list 4 5 6))`, function () {
 			assert.deepStrictEqual(schemy.evaluate(`
@@ -143,6 +161,5 @@ describe('List declaration', function () {
 			assert.deepStrictEqual(schemy.evaluate(`
 			(map string-length (cons "a" (cons "ab" (cons "abc" '())))) `), [1, 2, 3])
 		})
-
 	})
 })
