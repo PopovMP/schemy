@@ -74,8 +74,44 @@ const examplesList = [
 	},
 
     {
-        name: "Hanoi tower",
-        code: `;; Hanoi tower
+        name: "Fizz Buzz",
+        code: `;; Fizz Buzz
+;; http://www.rosettacode.org/wiki/FizzBuzz
+
+; Solution
+
+(define (fizz-buzz n)
+    (show (list-ref (list n "Fizz" "Buzz" "FizzBuzz")
+                    (+ (if (zero? (modulo n 3)) 1 0)
+                       (if (zero? (modulo n 5)) 2 0)))))
+
+; Helpers
+
+(define (show x)
+    (if (number? x)
+        (cond
+            [(< x  10) (display "  ") (display x) (display  " ")]
+            [(< x 100) (display  " ") (display x) (display  " ")]
+            [#t                       (display x) (display  " ")])
+        (begin
+            (display x)
+            (if (eq? x "FizzBuzz")
+                (newline)
+                (display  " ")))))
+
+(define (loop n max)
+    (when (<= n max)
+          (fizz-buzz n)
+          (loop (+ n 1) max)))
+
+(loop  1 120)
+
+`
+    },
+
+	{
+		name: "Hanoi tower",
+		code: `;; Hanoi tower
 
 (define (solve n a c b)
     (when (> n 0)
@@ -88,7 +124,7 @@ const examplesList = [
 
 (solve 4 "A" "C" "B")
 `
-    },
+	},
 
     {
         name: "Mutual recursive odd or even",
@@ -130,29 +166,11 @@ const examplesList = [
 ; __B_B__
 ; ___A___
 
-;; Generic functions
-
-(define (reverse-list lst)
-    (define (loop rest acc)
-        (if (eq? rest '())
-            acc
-            (loop (cdr rest)
-                  (cons (car rest) acc))))
-    (loop lst '()))
-
-(define (join-lists lst1 lst2)
-     (define (loop rest acc)
-         (if (eq? rest '())
-             acc
-             (loop (cdr rest)
-                   (cons (car rest)
-                         acc))))
-     (loop (reverse-list lst1)
-           lst2))
+; Generic functions
 
 (define (display-list lst)
     (define (loop rest)
-        (when (not (eq? rest '()))
+        (when (pair? rest)
               (display (car rest))
               (newline)
               (loop (cdr rest))))
@@ -161,34 +179,34 @@ const examplesList = [
 ; Diamond functions
 
 (define (make-line half-line)
-    (join-lists half-line
-                (cdr (reverse-list half-line))))
+    (append half-line
+            (cdr (reverse half-line))))
 
 (define (make-half-line lst n)
     (define (loop i rest acc)
-        (if (eq? rest '())
-            acc
+        (if (pair? rest)
            (if (= i n)
                (loop (+ i 1)
                      (cdr rest)
                      (cons (car rest) acc))
                (loop (+ i 1)
                      (cdr rest)
-                     (cons "_" acc)))))
+                     (cons "_" acc)))
+            acc))
     (loop 0 lst '()))
 
 (define (make-diamond lines)
-    (join-lists (reverse-list lines)
-                (cdr lines)))
+    (append (reverse lines)
+            (cdr lines)))
 
 (define (make-half-diamond lst)
     (define (loop i rest acc)
-        (if (eq? rest '())
-            acc
+        (if (pair? rest)
             (loop (+ i 1)
                   (cdr rest)
                   (cons (make-line (make-half-line lst i))
-                        acc))))
+                        acc))
+            acc))
     (loop 0 lst '()))
 
 ; Run
@@ -268,8 +286,8 @@ const examplesList = [
 (define mult  (λ (m) (λ (n) (λ (f) (m (n f)) ))))
 (define power (λ (m) (λ (n) (n m) )))
 
-(define zero? (λ (n) ((n (λ (x) FALSE)) TRUE) ))
-(define lte?  (λ (m) (λ (n) (zero? ((sub m) n)) )))
+(define Zero? (λ (n) ((n (λ (x) FALSE)) TRUE) ))
+(define lte?  (λ (m) (λ (n) (Zero? ((sub m) n)) )))
 
 ;; Converts a Church number to an integer
 (define int  (λ (cn) ((cn (λ (n) (+ n 1))) 0)))
@@ -283,8 +301,8 @@ const examplesList = [
 (format #t "forty-one   = ~S\\n" (int (pred forty-two)))
 (format #t "forty-two   = ~S\\n" (int forty-two))
 (format #t "forty-three = ~S\\n" (int (succ forty-two)))
-(format #t "zero? 0 ~S\\n"  (bool (zero? zero)))
-(format #t "zero? 1 ~S\\n"  (bool (zero?  one)))
+(format #t "Zero? 0 ~S\\n"  (bool (Zero? zero)))
+(format #t "Zero? 1 ~S\\n"  (bool (Zero?  one)))
 (format #t "lte? 3 4 ~S\\n" (bool ((lte? three)  four)))
 (format #t "lte? 4 3 ~S\\n" (bool ((lte?  four) three)))
 

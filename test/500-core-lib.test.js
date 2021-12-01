@@ -51,15 +51,15 @@ describe('core-lib', function () {
         });
     });
 
-    describe('%', function () {
+    describe('modulo', function () {
         it('positive numb', function () {
-            assert.strictEqual(schemy.evaluate(` (% 10 3) `), 1);
+            assert.strictEqual(schemy.evaluate(` (modulo 10 3) `), 1);
         });
         it('negative numb', function () {
-            assert.strictEqual(schemy.evaluate(` (% -10.0 3) `), -1);
+            assert.strictEqual(schemy.evaluate(` (modulo -10.0 3) `), -1);
         });
         it('both args negative', function () {
-            assert.strictEqual(schemy.evaluate(` (% -10.0 -3) `), -1);
+            assert.strictEqual(schemy.evaluate(` (modulo -10.0 -3) `), -1);
         });
     });
 

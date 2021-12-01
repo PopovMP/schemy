@@ -1000,7 +1000,8 @@ class CoreLib {
         '-': this.subtract,
         '*': this.multiply,
         '/': this.divide,
-        '%': this.modulo,
+        'modulo': this.modulo,
+        'zero?': this.isZero,
         '=': this.numEqual,
         '!=': this.numNotEqual,
         '>': this.numGreater,
@@ -1109,6 +1110,10 @@ class CoreLib {
     modulo(expr, env) {
         const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
         return num1 % num2;
+    }
+    isZero(expr, env) {
+        const [num] = this.inter.evalArgs(['number'], expr, env);
+        return num === 0;
     }
     numEqual(expr, env) {
         const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
@@ -1288,7 +1293,7 @@ class ListLib {
     }
     reverse(expr, env) {
         const [list] = this.inter.evalArgs(['list'], expr, env);
-        return list.reverse();
+        return [...list].reverse();
     }
     makeList(expr, env) {
         const [size, fill] = this.inter.evalArgs(['number', 'scalar'], expr, env);

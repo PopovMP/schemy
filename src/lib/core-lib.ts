@@ -15,7 +15,8 @@ class CoreLib implements ILib {
 		'-': this.subtract,
 		'*': this.multiply,
 		'/': this.divide,
-		'%': this.modulo,
+		'modulo' : this.modulo,
+		'zero?'  : this.isZero,
 
 		// Numerical comparison
 		'=' : this.numEqual,
@@ -178,11 +179,18 @@ class CoreLib implements ILib {
 		return num1 / num2
 	}
 
-	// (% num1 num2)
+	// (modulo num1 num2)
 	private modulo(expr: any[], env: any[]): number {
 		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 % num2
+	}
+
+	// (zero? num)
+	private isZero(expr: any[], env: any[]): boolean {
+		const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+
+		return num === 0
 	}
 
 	// (= num1 num2)

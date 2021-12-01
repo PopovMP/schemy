@@ -26,11 +26,11 @@ describe('Eval basics', function () {
 		it('subtract: (- (+ 3 2) 1) → 4', function () {
 			assert.strictEqual(schemy.evaluate('(- (+ 3 2) 1)'), 4)
 		})
-		it('modulo: (% 13 2) → 1', function () {
-			assert.strictEqual(schemy.evaluate('(% 13 2)'), 1)
+		it('modulo: (modulo 13 2) → 1', function () {
+			assert.strictEqual(schemy.evaluate('(modulo 13 2)'), 1)
 		})
-		it('modulo: (% 14 2) → 0', function () {
-			assert.strictEqual(schemy.evaluate('(% 14 2)'), 0)
+		it('modulo: (modulo 14 2) → 0', function () {
+			assert.strictEqual(schemy.evaluate('(modulo 14 2)'), 0)
 		})
 	})
 

@@ -32,13 +32,13 @@
 
 		const builtinFunc = makeKeywords(
 			// Core lib
-			'atom? boolean? number? string? null? pair? list? ' +
-			'+ - * / %  = != > >= < <= ' +
-			'eq? equal? not' +
+			'atom? boolean? number? string? null? pair? list? zero? ' +
+			'+ - * / = != > >= < <= ' +
+			'eq? equal? not modulo ' +
 
 			// list
 			'list cons car cdr caar cadr cdar cddr caddr cadddr caddddr ' +
-			'append length list-ref list-tail make-list map reverse' +
+			'append length list-ref list-tail make-list map reverse ' +
 
 			// list
 			'string string-append string-length string->number string->uppercase ' +

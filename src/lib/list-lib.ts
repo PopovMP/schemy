@@ -177,7 +177,7 @@ class ListLib implements ILib {
 	private reverse(expr: any[], env: any[]): any[] {
 		const [list] = <[any[]]>this.inter.evalArgs(['list'], expr, env)
 
-		return list.reverse()
+		return [...list].reverse()
 	}
 
 	// (make-list size fill)
