@@ -2,12 +2,12 @@
 class Interpreter {
     isDebug;
     libs;
-    builtinHash = {};
     specialForms = {
+        'apply': this.evalApply,
+        'begin': this.evalBegin,
         'define': this.evalDefine,
         'lambda': this.evalLambda,
-        'begin': this.evalBegin,
-        'apply': this.evalApply,
+        'set!': this.evalSet,
         'let': this.evalLet,
         'let*': this.evalLet,
         'letrec': this.evalLet,
@@ -29,37 +29,33 @@ class Interpreter {
         'debug': this.evalDebug,
         'raise': this.evalRaise,
     };
+    builtinHash = {};
     options;
     constructor() {
         this.isDebug = false;
         this.libs = [];
         this.options = new Options();
-        for (const form of Object.keys(this.specialForms)) {
+        for (const form of Object.keys(this.specialForms))
             this.builtinHash[form] = true;
-        }
     }
     evalCodeTree(codeTree, options, callback) {
         this.options = options;
         this.libs.push(...LibManager.getBuiltinLibs(options.libs, this));
-        if (typeof callback === 'function') {
+        if (typeof callback === 'function')
             LibManager.manageImports(codeTree, () => callback(this.evalExprList(codeTree, [])));
-        }
-        else {
+        else
             return this.evalExprList(codeTree, []);
-        }
     }
     evalExprList(exprLst, env) {
         let res;
-        for (const expr of exprLst) {
+        for (const expr of exprLst)
             res = this.evalExpr(expr, env);
-        }
         return res;
     }
     mapExprList(exprLst, env) {
         const res = [];
-        for (const expr of exprLst) {
+        for (const expr of exprLst)
             res.push(this.evalExpr(expr, env));
-        }
         return res;
     }
     evalExpr(expr, env) {
@@ -76,17 +72,14 @@ class Interpreter {
             this.dumpExpression(expr);
         }
         const form = expr[0];
-        if (form === undefined) {
+        if (form === undefined)
             throw 'Error: Improper function application. Probably: ()';
-        }
         if (typeof form === 'string') {
-            if (this.builtinHash[form]) {
+            if (this.builtinHash[form])
                 return this.specialForms[form].call(this, expr, env);
-            }
             for (const lib of this.libs) {
-                if (lib.builtinHash[form]) {
+                if (lib.builtinHash[form])
                     return lib.libEvalExpr(expr, env);
-                }
             }
         }
         return this.evalApplication(expr, env);
@@ -124,22 +117,24 @@ class Interpreter {
             : this.evalExpr(expr, env);
         for (let i = 0; i < args.length; i++) {
             const arg = args[i];
-            if (typeof arg === 'string') {
+            if (typeof arg === 'string')
                 args[i] = ['string', arg];
-            }
         }
         return args;
     }
     addToEnv(symbol, value, modifier, env) {
-        if (typeof value === 'undefined') {
+        if (typeof value === 'undefined')
             throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
-        }
         for (let i = env.length - 1; i > -1; i--) {
             const cellKey = env[i][0];
-            if (cellKey === '#scope') {
+            if (cellKey === '#scope')
                 break;
-            }
             if (cellKey === symbol) {
+                if (modifier === 'set') {
+                    env[i][1] = value;
+                    env[i][2] = modifier;
+                    break;
+                }
                 throw `Error: Identifier already defined: ${symbol}`;
             }
         }
@@ -147,27 +142,23 @@ class Interpreter {
     }
     lookup(symbol, env) {
         for (let i = env.length - 1; i > -1; i--) {
-            if (symbol === env[i][0]) {
+            if (symbol === env[i][0])
                 return env[i][1];
-            }
         }
         for (const lib of this.libs) {
-            if (lib.builtinHash[symbol]) {
+            if (lib.builtinHash[symbol])
                 return symbol;
-            }
         }
         throw `Error: Unbound identifier: ${symbol}`;
     }
     isDefined(symbol, env) {
         for (let i = env.length - 1; i > -1; i--) {
-            if (symbol === env[i][0]) {
+            if (symbol === env[i][0])
                 return true;
-            }
         }
         for (const lib of this.libs) {
-            if (lib.builtinHash[symbol]) {
+            if (lib.builtinHash[symbol])
                 return true;
-            }
         }
         return false;
     }
@@ -182,12 +173,10 @@ class Interpreter {
         const isNamed = typeof proc === 'string';
         const procId = isNamed ? proc : proc[0] === 'lambda' ? 'lambda' : 'expression';
         const closure = isNamed ? this.lookup(proc, env) : this.evalExpr(proc, env);
-        if (typeof closure === 'string' && this.isDefined(closure, env)) {
+        if (typeof closure === 'string' && this.isDefined(closure, env))
             return this.evalExpr([this.evalExpr(closure, env), ...expr.slice(1)], env);
-        }
-        if (!Array.isArray(closure) || closure[0] !== 'closure') {
+        if (!Array.isArray(closure) || closure[0] !== 'closure')
             throw `Error: Improper function application. Given: ${Printer.stringify(closure)}`;
-        }
         const args = expr.length === 1
             ? []
             : expr.length === 2
@@ -202,15 +191,12 @@ class Interpreter {
         if (paramsCount >= 0) {
             const dotIndex = params.indexOf('.');
             if (dotIndex >= 0) {
-                if (dotIndex === 0) {
+                if (dotIndex === 0)
                     throw `Error: Unexpected dot (.) as a first param in ${procId}.`;
-                }
-                else if (dotIndex === params.length) {
+                else if (dotIndex === params.length)
                     throw `Error: Unexpected dot (.) as a last param in ${procId}.`;
-                }
-                else if (dotIndex > argsCount) {
+                else if (dotIndex > argsCount)
                     throw `Error: Wrong count of arguments of proc ${procId}. Required min ${dotIndex} but given: ${argsCount}`;
-                }
             }
             else if (argsCount !== paramsCount) {
                 throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`;
@@ -255,27 +241,28 @@ class Interpreter {
             this.addToEnv(name, value, 'define', env);
         }
     }
+    evalSet(expr, env) {
+        const name = expr[1];
+        const value = this.evalExpr(expr[2], env);
+        this.addToEnv(name, value, 'set', env);
+    }
     evalLambda(expr, env) {
-        if (expr.length < 3) {
+        if (expr.length < 3)
             throw 'Error: Improper lambda. Given: ' + Printer.stringify(expr);
-        }
         return ['closure', expr[1], expr.slice(2), env];
     }
     evalBegin(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             throw 'Error: Empty begin';
-        }
         env.push(['#scope', 'begin']);
         const scopeStart = env.length - 1;
         const res = expr.length === 2
             ? this.evalExpr(expr[1], env)
             : this.evalExprList(expr.slice(1), env);
-        if (Array.isArray(res) && res[0] === 'closure') {
+        if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
-        }
-        else {
+        else
             this.clearEnv('#scope', env);
-        }
         return res;
     }
     evalApply(expr, env) {
@@ -284,15 +271,12 @@ class Interpreter {
         return this.evalExpr([proc, ...args], env);
     }
     evalLet(expr, env) {
-        if (expr.length < 3) {
+        if (expr.length < 3)
             throw 'Error: Improper \'let\' syntax. Missing body.';
-        }
-        if (typeof expr[1] === 'string' && Array.isArray(expr[2])) {
+        if (typeof expr[1] === 'string' && Array.isArray(expr[2]))
             return this.evalNamedLet(expr, env);
-        }
-        if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0])) {
+        if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0]))
             throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1]);
-        }
         env.push(['#scope', 'let']);
         const scopeStart = env.length - 1;
         const bindings = expr[1];
@@ -304,18 +288,15 @@ class Interpreter {
         const res = expr.length === 3
             ? this.evalExpr(expr[2], env)
             : this.evalExprList(expr.slice(2), env);
-        if (Array.isArray(res) && res[0] === 'closure') {
+        if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
-        }
-        else {
+        else
             this.clearEnv('#scope', env);
-        }
         return res;
     }
     evalNamedLet(expr, env) {
-        if (expr.length < 4) {
+        if (expr.length < 4)
             throw 'Error: Improper named \'let\' syntax. Missing body.';
-        }
         env.push(['#scope', 'let']);
         const scopeStart = env.length - 1;
         const bindings = expr[2];
@@ -333,18 +314,18 @@ class Interpreter {
         const res = expr.length === 4
             ? this.evalExpr(expr[3], env)
             : this.evalExprList(expr.slice(3), env);
-        if (Array.isArray(res) && res[0] === 'closure') {
+        if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
-        }
-        else {
+        else
             this.clearEnv('#scope', env);
-        }
         return res;
     }
     evalAnd(expr, env) {
         switch (expr.length) {
-            case 1: return true;
-            case 2: return this.evalExpr(expr[1], env);
+            case 1:
+                return true;
+            case 2:
+                return this.evalExpr(expr[1], env);
             case 3: {
                 const val = this.evalExpr(expr[1], env);
                 return this.isTrue(val) ? this.evalExpr(expr[2], env) : val;
@@ -357,8 +338,10 @@ class Interpreter {
     }
     evalOr(expr, env) {
         switch (expr.length) {
-            case 1: return false;
-            case 2: return this.evalExpr(expr[1], env);
+            case 1:
+                return false;
+            case 2:
+                return this.evalExpr(expr[1], env);
             case 3: {
                 const val = this.evalExpr(expr[1], env);
                 return this.isTrue(val) ? val : this.evalExpr(expr[2], env);
@@ -375,41 +358,31 @@ class Interpreter {
             : this.evalExpr(expr[3], env);
     }
     evalUnless(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             throw 'Error: Empty \'unless\'';
-        }
-        if (expr.length === 2) {
+        if (expr.length === 2)
             throw 'Error: Empty \'unless\' body';
-        }
-        if (this.isTrue(this.evalExpr(expr[1], env))) {
+        if (this.isTrue(this.evalExpr(expr[1], env)))
             return;
-        }
         env.push(['#scope', 'unless']);
-        if (expr.length === 3) {
+        if (expr.length === 3)
             this.evalExpr(expr[2], env);
-        }
-        else {
+        else
             this.evalExprList(expr.slice(2), env);
-        }
         this.clearEnv('#scope', env);
     }
     evalWhen(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             throw 'Error: Empty \'when\'';
-        }
-        if (expr.length === 2) {
+        if (expr.length === 2)
             throw 'Error: Empty \'when\' body';
-        }
-        if (!this.isTrue(this.evalExpr(expr[1], env))) {
+        if (!this.isTrue(this.evalExpr(expr[1], env)))
             return;
-        }
         env.push(['#scope', 'when']);
-        if (expr.length === 3) {
+        if (expr.length === 3)
             this.evalExpr(expr[2], env);
-        }
-        else {
+        else
             this.evalExprList(expr.slice(2), env);
-        }
         this.clearEnv('#scope', env);
     }
     evalCond(expr, env) {
@@ -425,19 +398,16 @@ class Interpreter {
             }
         }
         this.clearEnv('#scope', env);
-        return undefined;
     }
     evalCase(expr, env) {
         const key = this.evalExpr(expr[1], env);
         const clauses = expr.slice(2);
         for (const clause of clauses) {
             const datum = clause[0];
-            if (!Array.isArray(datum) && datum !== 'else') {
+            if (!Array.isArray(datum) && datum !== 'else')
                 throw `Error: 'case' requires datum to be in a list. Given: ${Printer.stringify(datum)}`;
-            }
-            if (clause.length <= 1) {
+            if (clause.length <= 1)
                 throw `Error: 'case' requires a clause with one or more expressions.`;
-            }
             const isMatch = datum === 'else' ||
                 datum.some((e) => e === key || (e[0] === 'string' && e[1] === key));
             if (isMatch) {
@@ -449,7 +419,6 @@ class Interpreter {
                 return res;
             }
         }
-        return undefined;
     }
     evalDisplay(expr, env) {
         const [obj] = this.evalArgs(['any'], expr, env);
@@ -460,29 +429,24 @@ class Interpreter {
         this.options.printer('\r\n');
     }
     evalQuote(expr) {
-        if (expr.length !== 2) {
+        if (expr.length !== 2)
             throw 'Error: \'quote\' requires 1 argument. Given: ' + (expr.length - 1);
-        }
         return expr[1];
     }
     evalQuasiquote(expr, env) {
-        if (expr.length !== 2) {
+        if (expr.length !== 2)
             throw 'Error: \'quasiquote\' requires 1 argument. Given: ' + (expr.length - 1);
-        }
         const isUnquote = (obj) => obj === ',';
         const isUnquoteSplicing = (obj) => obj === '@';
         const datum = expr[1];
         const output = [];
         for (let i = 0; i < datum.length; i++) {
-            if (i > 0 && isUnquote(datum[i - 1])) {
+            if (i > 0 && isUnquote(datum[i - 1]))
                 output.push(this.evalExpr(datum[i], env));
-            }
-            else if (i > 0 && isUnquoteSplicing(datum[i - 1])) {
+            else if (i > 0 && isUnquoteSplicing(datum[i - 1]))
                 output.push(...this.evalExpr(datum[i], env));
-            }
-            else if (!isUnquote(datum[i]) && !isUnquoteSplicing(datum[i])) {
+            else if (!isUnquote(datum[i]) && !isUnquoteSplicing(datum[i]))
                 output.push(datum[i]);
-            }
         }
         return output;
     }
@@ -490,24 +454,23 @@ class Interpreter {
         const form = this.mapExprList(expr.slice(1), env);
         const isPrint = typeof form[0] === 'boolean' && form[0];
         const pattern = typeof form[0] === 'string' ? form[0] : form[1];
-        const args = form.slice(typeof form[0] === 'string' ? 1 : 2)
+        const args = form
+            .slice(typeof form[0] === 'string' ? 1 : 2)
             .map((arg) => Printer.stringify(arg));
         let index = 0;
         function replacer(_match) {
             return args[index++];
         }
         const res = pattern.replace(/~./g, replacer);
-        if (isPrint) {
+        if (isPrint)
             this.options.printer(res);
-        }
         return isPrint ? undefined : res;
     }
     evalDebug(_expr, env) {
         this.isDebug = true;
         const envDumpList = [];
-        for (let i = Math.min(env.length - 1, 20); i > -1; i--) {
+        for (let i = Math.min(env.length - 1, 20); i > -1; i--)
             envDumpList.push(`${env[i][0]} = ${Printer.stringify(env[i][1]).substr(0, 500)}`);
-        }
         this.options.printer(`Environment:\n${envDumpList.join('\n')}\n`);
     }
     evalRaise(expr, env) {
@@ -538,9 +501,8 @@ class Interpreter {
         }
     }
     assertArgType(name, arg, argType) {
-        if (!this.assertType(arg, argType)) {
+        if (!this.assertType(arg, argType))
             throw `Error: '${name}' requires ${argType}. Given: ${typeof arg} ${this.argToStr(arg)}`;
-        }
     }
     argToStr(arg) {
         const maxLength = 25;

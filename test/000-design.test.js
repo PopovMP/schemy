@@ -6,7 +6,7 @@ const Schemy         = require('../assets/js/schemy.js').Schemy
 
 const schemy = new Schemy()
 
-describe('EASL design', function () {
+describe('Design', function () {
 
 	describe('numbers', function () {
 		it('42 -> 42', function () {
@@ -47,7 +47,7 @@ describe('EASL design', function () {
 	})
 
 	describe('and', function () {
-		it(`(and 1 '()) -> '()` , function () {
+		it(`(and 1 '()) -> '()`, function () {
 			assert.deepStrictEqual(schemy.evaluate(`  (and 1 '())  `), [])
 		})
 	})
