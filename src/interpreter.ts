@@ -178,18 +178,32 @@ class Interpreter
 			if (cellKey === '#scope')
 				break
 
-			if (cellKey === symbol) {
-				if (modifier === 'set') {
-					env[i][1] = value
-					env[i][2] = modifier
-					break
-				}
-
+			if (cellKey === symbol)
 				throw `Error: Identifier already defined: ${symbol}`
-			}
 		}
 
 		env.push([symbol, value, modifier])
+	}
+
+	private setVariableInEnv(symbol: string, value: any, env: any[]): void
+	{
+		if (typeof value === 'undefined')
+			throw `Error: cannot set unspecified value to symbol: ${symbol}.`
+
+		for (let i = env.length - 1; i > -1; i--) {
+			const cellKey = env[i][0]
+
+			if (cellKey === '#scope')
+				break
+
+			if (cellKey === symbol) {
+				env[i][1] = value
+				env[i][2] = 'set'
+				return
+			}
+		}
+
+		throw `Error: Identifier is not defined: ${symbol}`
 	}
 
 	private lookup(symbol: string, env: any[]): any
@@ -333,12 +347,13 @@ class Interpreter
 		}
 	}
 
-	// (set! name expr)  ; Variable assignment
+	// (set! name expr) ; Variable assignment
 	private evalSet(expr: any[], env: any[]): void
 	{
 		const name: string = expr[1]
 		const value: any   = this.evalExpr(expr[2], env)
-		this.addToEnv(name, value, 'set', env)
+
+		this.setVariableInEnv(name, value, env)
 	}
 
 	// (lambda (p*)   expr+)
