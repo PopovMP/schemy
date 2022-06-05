@@ -2,7 +2,8 @@
 
 const app = {}
 
-function initialize() {
+function initialize()
+{
 	const codeMirrorOptions = {
 		lineNumbers   : true,
 		matchBrackets : true,
@@ -13,25 +14,30 @@ function initialize() {
 		tabSize       : 4,
 	}
 
-	app.schemy                = new Schemy()
-	app.view                  = {}
-	app.view.codeAreaElem     = document.getElementById('code-area')
-	app.view.buttonRun        = document.getElementById('run-button')
-	app.view.codeOutputElem   = document.getElementById('code-output')
-	app.view.codeExamplesElem = document.getElementById('select-examples')
-	app.editor                = CodeMirror.fromTextArea(app.view.codeAreaElem, codeMirrorOptions)
-	app.evalOptions           = {printer: interpreter_print}
+	const view = {
+		codeAreaElem     : document.getElementById('code-area'),
+		buttonRun        : document.getElementById('run-button'),
+		codeOutputElem   : document.getElementById('code-output'),
+		codeExamplesElem : document.getElementById('select-examples'),
+		runningTime      : document.getElementById('running-time'),
+	}
 
-	app.view.buttonRun.addEventListener('click', buttonRun_click)
+	app.editor      = CodeMirror.fromTextArea(view.codeAreaElem, codeMirrorOptions)
+	app.evalOptions = {printer: interpreter_print}
+	app.view        = view
+	app.schemy      = new Schemy()
 
 	setExamples()
 	setDefaultCode()
 
+	view.buttonRun.addEventListener('click', buttonRun_click)
 	document.addEventListener('keydown', document_keydown)
 	window.addEventListener('beforeunload', window_beforeUnload)
+
 }
 
-function setExamples() {
+function setExamples()
+{
 	const exampleNames = examplesList.map(function (e) {
 		return e.name
 	})
@@ -49,7 +55,8 @@ function setExamples() {
 	}
 }
 
-function setDefaultCode() {
+function setDefaultCode()
+{
 	try {
 		const code = JSON.parse(localStorage.getItem('schemeCode'))
 		app.editor.getDoc().setValue(code || examplesList[0].code)
@@ -62,23 +69,33 @@ function setDefaultCode() {
 	clearOutput()
 }
 
-function runCode(codeText) {
+function runCode(codeText)
+{
 	clearOutput()
-	app.schemy.evaluate(codeText, app.evalOptions, eval_ready)
+
+	const startTime = Date.now()
+
+	app.schemy.evaluate(codeText, app.evalOptions, (output) => {
+		const time = Date.now() - startTime
+		app.view.runningTime.innerText = 'Run time: ' + time + 'ms.'
+
+		if (typeof output !== 'undefined')
+			showOutput(output)
+	})
 }
 
-function showOutput(text) {
-	if (typeof text === 'undefined') {
-		return
-	}
-	app.view.codeOutputElem.value += text
-}
-
-function clearOutput() {
+function clearOutput()
+{
 	app.view.codeOutputElem.value = ''
 }
 
-function exampleLink_click(event) {
+function showOutput(output)
+{
+	app.view.codeOutputElem.value += output
+}
+
+function exampleLink_click(event)
+{
 	event.preventDefault()
 
 	const exampleName = event.target.innerHTML
@@ -91,44 +108,40 @@ function exampleLink_click(event) {
 	}
 }
 
-function buttonRun_click(event) {
+function buttonRun_click(event)
+{
 	event.preventDefault()
 	const code = app.editor.getDoc().getValue()
 	runCode(code)
 }
 
-function interpreter_print(text) {
-	showOutput(text)
-}
-
-function eval_ready(output) {
+function interpreter_print(output)
+{
 	showOutput(output)
 }
 
-function document_keydown(event) {
-
-	// "Ctrl" + "L" inserts λ
+function document_keydown(event)
+{
 	if (event.ctrlKey && event.keyCode === 76) {
+		// "Ctrl" + "L" - inserts λ
 		event.preventDefault()
 		insertTextInEditor('λ')
 	}
-
-	// "Ctrl" + "R" run or F5
-	else if (event.ctrlKey && event.keyCode === 82 ||
-		event.keyCode === 116) {
+	else if (event.ctrlKey && event.keyCode === 82 || event.keyCode === 116) {
+		// "Ctrl" + "R" or F5 - run
 		event.preventDefault()
 		const code = app.editor.getDoc().getValue()
 		runCode(code)
 	}
-
-	// "Ctrl" + "K" clear console
 	else if (event.ctrlKey && event.keyCode === 75) {
+		// "Ctrl" + "K" - clear console
 		event.preventDefault()
 		clearOutput()
 	}
 }
 
-function insertTextInEditor(str) {
+function insertTextInEditor(str)
+{
 	const selection = app.editor.getSelection()
 
 	if (selection.length > 0) {
@@ -143,7 +156,8 @@ function insertTextInEditor(str) {
 	}
 }
 
-function window_beforeUnload() {
+function window_beforeUnload()
+{
 	const code = app.editor.getDoc().getValue()
 	localStorage.setItem('schemeCode', JSON.stringify(code))
 }
