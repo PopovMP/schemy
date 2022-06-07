@@ -8,29 +8,31 @@
 
 Execute code:
 
-    const Schemy = require("../bin/schemy.js").Schemy;
-    const easl = new Schemy();
-      
-    const code = '  (define a 5)
-                    (+ a a)    `;
-                    
-    const res = eas.evaluate(code);
-    
-    console.log(res); // -> 10
+```javascript
+const Schemy = require("../bin/schemy.js").Schemy
+const schemy = new Schemy()
+
+const code = `(define a 5)
+              (+ a a)`
+
+const res = schemy.evaluate(code)
+console.log(res) // -> 10
+```
 
 ## Use in browser
 
-    <script src="js/schemy.js"></script>
-    <script>
-        const easl = new Schemy();
+```javascript
+<script src="js/schemy.js"></script>
+<script>
+	const schemy = new Schemy()
 
-        const code = ' (define a 5)
-                       (+ a a)   `;
-                        
-        const res = eas.evaluate(code);
-        console.log(res); // -> 10
-    </script>
+	const code = `(define a 5)
+	              (+ a a)`
 
+	const res = schemy.evaluate(code)
+	console.log(res) // -> 10
+</script>
+```
 
 ## Forms
 
