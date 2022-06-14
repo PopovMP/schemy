@@ -14,6 +14,24 @@ describe('set!', function () {
 			a                 `), 2)
 	})
 
+	it('when set! from inner scope, it works', function () {
+		assert.strictEqual(schemy.evaluate(`
+			(define a 42)
+			(define (set n)
+			  (set! a n))
+			(set 2)
+			a                 `), 2)
+	})
+
+	it('when set! a variable in a closure, it works', function () {
+		assert.strictEqual(schemy.evaluate(`
+			(define (foo a)
+			  (lambda (n)
+			    (set! a n)
+				a))
+			((foo 42) 2)      `), 2)
+	})
+
 	it('when set!, it returns an unspecified value', function () {
 		assert.strictEqual(schemy.evaluate(`
 		    (define a 1)

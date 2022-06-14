@@ -139,8 +139,6 @@ class Interpreter {
             throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
         for (let i = env.length - 1; i > -1; i--) {
             const cellKey = env[i][0];
-            if (cellKey === '#scope')
-                break;
             if (cellKey === symbol) {
                 env[i][1] = value;
                 env[i][2] = 'set';

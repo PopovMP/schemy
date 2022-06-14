@@ -18,14 +18,14 @@
   },
   "devDependencies": {
     "@types/node": "^16.11.1",
-    "@popovmp/mocha-tiny": "^1.3.1",
+    "@popovmp/mocha-tiny": "^2.2.0",
     "node-localstorage": "^2.2.1",
     "typescript": "^4.4.4",
     "xmlhttprequest": "^1.8.0"
   },
   "license": "MIT",
   "scripts": {
-    "buld": "tsc",
+    "build": "tsc",
     "test": "mocha-tiny"
   }
 }
