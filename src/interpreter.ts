@@ -665,26 +665,19 @@ class Interpreter
 	// (format #t pattern args...)
 	private evalFormat(expr: any[], env: any[]): string | undefined
 	{
-		const form: any[]      = this.mapExprList(expr.slice(1), env)
-		const isPrint: boolean = typeof form[0] === 'boolean' && form[0]
-		const pattern: string  = typeof form[0] === 'string' ? form[0] : form[1]
-		const args: string[]   = form
-			.slice(typeof form[0] === 'string' ? 1 : 2)
-			.map((arg: any) => Printer.stringify(arg))
+		const form   : any[]    = this.mapExprList(expr.slice(1), env)
+		const isPrint: boolean  = typeof form[0] === 'boolean' && form[0]
+		const pattern: string   = typeof form[0] === 'string' ? form[0] : form[1]
+		const args   : string[] = form.slice(typeof form[0] === 'string' ? 1 : 2).map(Printer.stringify)
 
+		// TODO implement different placeholders
 		let index = 0
+		const text: string = pattern.replace(/~./g, (_) => args[index++])
 
-		function replacer(_match: string): string
-		{
-			return args[index++]
-		}
+		if (!isPrint)
+			return text
 
-		const res: string = pattern.replace(/~./g, replacer)
-
-		if (isPrint)
-			this.options.printer(res)
-
-		return isPrint ? undefined : res
+		this.options.printer(text)
 	}
 
 	// (debug)

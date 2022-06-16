@@ -103,5 +103,17 @@ describe('Eval basics', function () {
 		it('(format "foo: ~S, bar: ~S" 3 4) → "foo: 3, bar: 4"', function () {
 			assert.strictEqual(schemy.evaluate(`(format "foo: ~S, bar: ~S" 3 4)`), 'foo: 3, bar: 4')
 		})
+
+		it('(format "~S\\n" (list 1 2 3 4)) →  "(1 2 3 4)\\n"', function () {
+			assert.strictEqual(schemy.evaluate(`(format "~S\\n" (list 1 2 3 4))`), "(1 2 3 4)\n")
+		})
+
+		it('(format #t "foo ~S" "bar") → unspecified', function () {
+			assert.strictEqual(schemy.evaluate(`(format #t "foo ~S" "bar")`), undefined)
+		})
+
+		it('(format #t "~S\\n" (list 1 2 3 4)) → unspecified', function () {
+			assert.strictEqual(schemy.evaluate(`(format #t "~S\\n" (list 1 2 3 4))`), undefined)
+		})
 	})
 })

@@ -51,18 +51,22 @@ describe('Parser', function () {
 			const codeText = '1'
 			assert.deepStrictEqual(parser.parse(codeText), [1])
 		})
+
 		it('parse 2', function () {
 			const codeText = '1 2 a'
 			assert.deepStrictEqual(parser.parse(codeText), [1, 2, 'a'])
 		})
+
 		it('parse 3 - 1', function () {
 			const codeText = '(a) (b)'
 			assert.deepStrictEqual(parser.parse(codeText), [['a'], ['b']])
 		})
+
 		it('parse two lists', function () {
 			const codeText = '(list 1 2) (list 3 4)'
 			assert.deepStrictEqual(parser.parse(codeText), [['list', 1, 2], ['list', 3, 4]])
 		})
+
 		it('parse two quotes', function () {
 			const codeText = '\'(1 2) \'(3 4)'
 			assert.deepStrictEqual(parser.parse(codeText), [['quote', [1, 2]], ['quote', [3, 4]]])
@@ -82,15 +86,16 @@ describe('Parser', function () {
 				['define', 'fac',
 					['lambda', ['n'],
 						['if', ['=', 'n', 0],
-							1,
-							['*', ['fac', ['-', 'n', 1]], 'n']]]],
-				['fac', 5],
+							   1,
+							   ['*', ['fac', ['-', 'n', 1]], 'n']]]],
+				['fac', 5]
 			]
 
-			const ilText = `((define fac (lambda (n) (if (= n 0) 1 (* (fac (- n 1)) n)))) (fac 5))`
-
 			assert.deepStrictEqual(parser.parse(codeText), ilCode)
-			assert.deepStrictEqual(Printer.stringify(parser.parse(codeText)), ilText)
+
+			const printText = `((define fac (lambda (n) (if (= n 0) 1 (* (fac (- n 1)) n)))) (fac 5))`
+
+			assert.deepStrictEqual(Printer.stringify(ilCode), printText)
 		})
 	})
 })

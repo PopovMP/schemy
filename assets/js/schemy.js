@@ -461,17 +461,12 @@ class Interpreter {
         const form = this.mapExprList(expr.slice(1), env);
         const isPrint = typeof form[0] === 'boolean' && form[0];
         const pattern = typeof form[0] === 'string' ? form[0] : form[1];
-        const args = form
-            .slice(typeof form[0] === 'string' ? 1 : 2)
-            .map((arg) => Printer.stringify(arg));
+        const args = form.slice(typeof form[0] === 'string' ? 1 : 2).map(Printer.stringify);
         let index = 0;
-        function replacer(_match) {
-            return args[index++];
-        }
-        const res = pattern.replace(/~./g, replacer);
-        if (isPrint)
-            this.options.printer(res);
-        return isPrint ? undefined : res;
+        const text = pattern.replace(/~./g, (_) => args[index++]);
+        if (!isPrint)
+            return text;
+        this.options.printer(text);
     }
     evalDebug(_expr, env) {
         this.isDebug = true;

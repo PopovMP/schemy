@@ -2,7 +2,7 @@
 
 const assert         = require('assert')
 const {describe, it} = require('@popovmp/mocha-tiny')
-const Schemy           = require('../assets/js/schemy.js').Schemy
+const Schemy         = require('../assets/js/schemy.js').Schemy
 
 const schemy = new Schemy()
 
@@ -50,7 +50,6 @@ describe('if', function () {
 	it('(if #f 1) -> undefined', function () {
 		assert.strictEqual(schemy.evaluate('(if #f 1)'), undefined)
 	})
-
 
 	it('(define a (if #f 1)) -> throws', function () {
 		assert.strictEqual(schemy.evaluate('(define a (if #f 1))'),
