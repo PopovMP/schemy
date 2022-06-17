@@ -6,43 +6,48 @@ const localStorageLib = (typeof localStorage === 'object' && localStorage !== nu
 	? localStorage
 	: new (require('node-localstorage').LocalStorage)('./schemy-local-storage')
 
-class IoService {
-	public static get(url: string, callback: (res: string) => void): void {
+class IoService
+{
+	public static get(url: string, callback: (res: string) => void): void
+	{
 		const xmlHttp: XMLHttpRequest = new XMLHttpRequestLib()
-		xmlHttp.onreadystatechange    = readyStateChange
-		xmlHttp.onerror               = error
+		xmlHttp.onreadystatechange = readyStateChange
+		xmlHttp.onerror            = error
 		xmlHttp.open('GET', url, true)
 		xmlHttp.send()
 
-		function readyStateChange(): void {
-			if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+		function readyStateChange(): void
+		{
+			if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
 				callback(xmlHttp.responseText)
-			}
 		}
 
-		function error(e: any) {
-			throw 'Error: GET: ' + url + ', ' + e.message
+		function error(e: any)
+		{
+			throw `Error: GET: ${url}, ${e.message}`
 		}
 	}
 
-	public static setItemToLocalStorage(key: string, item: any): void {
+	public static setItemToLocalStorage(key: string, item: any): void
+	{
 		try {
-			if (typeof item === 'string') {
+			if (typeof item === 'string')
 				localStorageLib.setItem(key, item)
-			}
-			else {
+			else
 				localStorageLib.setItem(key, JSON.stringify(item))
-			}
-		} catch (e: any) {
-			throw 'Error: Set item to local storage: ' + key + ', ' + e.message
+		}
+		catch (e: any) {
+			throw `Error: Set item to local storage: ${key}, ${e.message}`
 		}
 	}
 
-	public static getItemFromLocalStorage(key: string): any {
+	public static getItemFromLocalStorage(key: string): any
+	{
 		try {
 			const value: any = localStorageLib.getItem(key)
 			return value && JSON.parse(value)
-		} catch (e: any) {
+		}
+		catch (e: any) {
 			throw 'Error: Get item to local storage: ' + key + ', ' + e.message
 		}
 	}

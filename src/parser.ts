@@ -28,13 +28,13 @@ class Parser {
 	}
 
 	private expandAbbreviations(codeList: any[], abbrevList: [string, string][]): any[] {
-		if (abbrevList.length === 0) {
+		if (abbrevList.length === 0)
 			return codeList
-		}
 
 		const abbrev: [string, string] = abbrevList[0]
-		const expandedSymbols: any[]   = this.expandSymbolAbbreviation(codeList, abbrev[0], abbrev[1])
-		const expandedLists: any[]     = this.expandListAbbreviation(expandedSymbols, abbrev[0], abbrev[1])
+		const expandedSymbols: any[] = this.expandSymbolAbbreviation(codeList, abbrev[0], abbrev[1])
+		const expandedLists  : any[] = this.expandListAbbreviation(expandedSymbols, abbrev[0], abbrev[1])
+
 		return this.expandAbbreviations(expandedLists, abbrevList.slice(1))
 	}
 
@@ -48,9 +48,8 @@ class Parser {
 		const output: any[] = []
 
 		const pushLexeme = (lexeme: string): void => {
-			if (lexeme === '') {
+			if (lexeme === '')
 				return
-			}
 
 			const value = this.isTextNumber(lexeme) ? Number(lexeme)
 								: lexeme === '#t' ? true
@@ -86,7 +85,7 @@ class Parser {
 			}
 
 			// Eat line comment ; ...
-			if (this.isLineComment(ch)) {
+			if ( this.isLineComment(ch) ) {
 				do {
 					i++
 				} while (isInFile(i) && isInLine(i))
@@ -94,20 +93,20 @@ class Parser {
 			}
 
 			// Eat range comment #| ... |#
-			if (isOpenRangeComment(i)) {
+			if ( isOpenRangeComment(i) ) {
 				do {
 					i++
 				} while (!isCloseRangeComment(i))
 				continue
 			}
 
-			if (this.isWhiteSpace(ch)) {
+			if ( this.isWhiteSpace(ch) ) {
 				pushLexeme(lexeme)
 				lexeme = ''
 				continue
 			}
 
-			if (this.isDelimiter(ch)) {
+			if ( this.isDelimiter(ch) ) {
 				pushLexeme(lexeme)
 				lexeme = ''
 				output.push(ch)
@@ -159,13 +158,11 @@ class Parser {
 
 			output.push(curr)
 
-			if (flag && this.isOpenParen(curr)) {
+			if (flag && this.isOpenParen(curr))
 				paren++
-			}
 
-			if (flag && this.isCloseParen(curr)) {
+			if (flag && this.isCloseParen(curr))
 				paren--
-			}
 
 			if (flag && paren === 0) {
 				output.push(')')
@@ -182,21 +179,18 @@ class Parser {
 		let i: number = -1
 
 		function pass(list: any[]): any[] {
-			if (++i === input.length) {
+			if (++i === input.length)
 				return list
-			}
 
 			const curr: string = input[i]
 			const prev: string = input[i - 1]
 
-			if (['{', '[', '('].includes(curr) && prev !== 'string') {
+			if (['{', '[', '('].includes(curr) && prev !== 'string')
 				return list.concat([pass([])]).concat(pass([]))
-			}
 
 			if ([')', ']', '}'].includes(curr)) {
-				if (prev === 'string' && input[i - 2] !== '(' || prev !== 'string') {
+				if (prev === 'string' && input[i - 2] !== '(' || prev !== 'string')
 					return list
-				}
 			}
 
 			return pass(list.concat(curr))
@@ -212,9 +206,8 @@ class Parser {
 
 		for (let i: number = 0; i < codeList.length; i++) {
 			// Eat string
-			if (codeList[i - 1] === '(' && codeList[i] === 'string') {
+			if (codeList[i - 1] === '(' && codeList[i] === 'string')
 				i += 2
-			}
 
 			switch (codeList[i]) {
 				case '(':
@@ -238,20 +231,16 @@ class Parser {
 			}
 		}
 
-		if (curly !== 0) {
+		if (curly !== 0)
 			throw 'Unmatching curly braces!'
-		}
 
-		if (square !== 0) {
+		if (square !== 0)
 			throw 'Unmatching square braces!'
-		}
 
-		if (round !== 0) {
+		if (round !== 0)
 			throw 'Unmatching round braces!'
-		}
 	}
 }
 
-if (typeof module === 'object') {
-	module.exports.Parser = Parser;
-}
+if (typeof module === 'object')
+	module.exports.Parser = Parser

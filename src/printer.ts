@@ -25,9 +25,8 @@ class Printer {
 		}
 
 		function loop(lst: any[]): void {
-			if (lst.length === 0) {
+			if (lst.length === 0)
 				return
-			}
 
 			const element = lst[0]
 
@@ -65,26 +64,21 @@ class Printer {
 
 		const type = typeof input
 
-		if (input === null) {
+		if (input === null)
 			return `'()`
-		}
 
-		if (type === 'boolean') {
+		if (type === 'boolean')
 			return input ? '#t' : '#f'
-		}
 
-		if (type === 'number') {
+		if (type === 'number')
 			return String(input)
-		}
 
-		if (type === 'string') {
+		if (type === 'string')
 			return input
-		}
 
 		if (Array.isArray(input)) {
-			if (input.length === 0) {
+			if (input.length === 0)
 				return '()'
-			}
 
 			texts.push('(')
 			loop(input)
@@ -97,6 +91,5 @@ class Printer {
 	}
 }
 
-if (typeof module === 'object') {
+if (typeof module === 'object')
 	module.exports.Printer = Printer
-}

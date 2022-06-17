@@ -550,25 +550,22 @@ class IoService {
         xmlHttp.open('GET', url, true);
         xmlHttp.send();
         function readyStateChange() {
-            if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+            if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
                 callback(xmlHttp.responseText);
-            }
         }
         function error(e) {
-            throw 'Error: GET: ' + url + ', ' + e.message;
+            throw `Error: GET: ${url}, ${e.message}`;
         }
     }
     static setItemToLocalStorage(key, item) {
         try {
-            if (typeof item === 'string') {
+            if (typeof item === 'string')
                 localStorageLib.setItem(key, item);
-            }
-            else {
+            else
                 localStorageLib.setItem(key, JSON.stringify(item));
-            }
         }
         catch (e) {
-            throw 'Error: Set item to local storage: ' + key + ', ' + e.message;
+            throw `Error: Set item to local storage: ${key}, ${e.message}`;
         }
     }
     static getItemFromLocalStorage(key) {
@@ -596,7 +593,7 @@ class LibManager {
             case 'string-lib':
                 return new StringLib(inter);
             default:
-                throw 'Error: Unknown lib: ' + libName;
+                throw `Error: Unknown lib: ${libName}`;
         }
     }
     static manageImports(codeTree, callback) {
@@ -624,9 +621,8 @@ class LibManager {
         }
     }
     static importLibrary(libUrl, callback) {
-        if (typeof libUrl !== 'string' || libUrl.length === 0) {
+        if (typeof libUrl !== 'string' || libUrl.length === 0)
             throw 'Error: Empty library name';
-        }
         const storedLib = IoService.getItemFromLocalStorage(libUrl);
         if (Array.isArray(storedLib) && storedLib.length > 0) {
             callback(storedLib);
@@ -635,9 +631,8 @@ class LibManager {
         const libName = libUrl.substring(libUrl.lastIndexOf('/') + 1);
         IoService.get(libUrl, ioService_get_ready);
         function ioService_get_ready(libText) {
-            if (typeof libUrl !== 'string' || libUrl.length === 0) {
+            if (typeof libUrl !== 'string' || libUrl.length === 0)
                 throw 'Error: Cannot load library content: ' + libName;
-            }
             const parser = new Parser();
             const libCode = parser.parse(libText);
             IoService.setItemToLocalStorage(libUrl, libCode);
@@ -658,18 +653,14 @@ class Options {
     }
     static parse(options) {
         const evalOptions = new Options();
-        if (typeof options.printer === 'function') {
+        if (typeof options.printer === 'function')
             evalOptions.printer = options.printer;
-        }
-        if (Array.isArray(options.libs)) {
+        if (Array.isArray(options.libs))
             evalOptions.libs = options.libs.slice();
-        }
-        if (options.extContext) {
+        if (options.extContext)
             evalOptions.extContext = options.extContext;
-        }
-        if (options.extFunctions) {
+        if (options.extFunctions)
             evalOptions.extFunctions = options.extFunctions;
-        }
         return evalOptions;
     }
 }
@@ -696,9 +687,8 @@ class Parser {
         return ilTree;
     }
     expandAbbreviations(codeList, abbrevList) {
-        if (abbrevList.length === 0) {
+        if (abbrevList.length === 0)
             return codeList;
-        }
         const abbrev = abbrevList[0];
         const expandedSymbols = this.expandSymbolAbbreviation(codeList, abbrev[0], abbrev[1]);
         const expandedLists = this.expandListAbbreviation(expandedSymbols, abbrev[0], abbrev[1]);
@@ -712,9 +702,8 @@ class Parser {
         const isStringChar = (ch) => ch === '"';
         const output = [];
         const pushLexeme = (lexeme) => {
-            if (lexeme === '') {
+            if (lexeme === '')
                 return;
-            }
             const value = this.isTextNumber(lexeme) ? Number(lexeme)
                 : lexeme === '#t' ? true
                     : lexeme === '#f' ? false
@@ -796,12 +785,10 @@ class Parser {
                 continue;
             }
             output.push(curr);
-            if (flag && this.isOpenParen(curr)) {
+            if (flag && this.isOpenParen(curr))
                 paren++;
-            }
-            if (flag && this.isCloseParen(curr)) {
+            if (flag && this.isCloseParen(curr))
                 paren--;
-            }
             if (flag && paren === 0) {
                 output.push(')');
                 flag = false;
@@ -814,18 +801,15 @@ class Parser {
     nest(input) {
         let i = -1;
         function pass(list) {
-            if (++i === input.length) {
+            if (++i === input.length)
                 return list;
-            }
             const curr = input[i];
             const prev = input[i - 1];
-            if (['{', '[', '('].includes(curr) && prev !== 'string') {
+            if (['{', '[', '('].includes(curr) && prev !== 'string')
                 return list.concat([pass([])]).concat(pass([]));
-            }
             if ([')', ']', '}'].includes(curr)) {
-                if (prev === 'string' && input[i - 2] !== '(' || prev !== 'string') {
+                if (prev === 'string' && input[i - 2] !== '(' || prev !== 'string')
                     return list;
-                }
             }
             return pass(list.concat(curr));
         }
@@ -836,9 +820,8 @@ class Parser {
         let square = 0;
         let round = 0;
         for (let i = 0; i < codeList.length; i++) {
-            if (codeList[i - 1] === '(' && codeList[i] === 'string') {
+            if (codeList[i - 1] === '(' && codeList[i] === 'string')
                 i += 2;
-            }
             switch (codeList[i]) {
                 case '(':
                     round++;
@@ -860,20 +843,16 @@ class Parser {
                     break;
             }
         }
-        if (curly !== 0) {
+        if (curly !== 0)
             throw 'Unmatching curly braces!';
-        }
-        if (square !== 0) {
+        if (square !== 0)
             throw 'Unmatching square braces!';
-        }
-        if (round !== 0) {
+        if (round !== 0)
             throw 'Unmatching round braces!';
-        }
     }
 }
-if (typeof module === 'object') {
+if (typeof module === 'object')
     module.exports.Parser = Parser;
-}
 class Printer {
     static stringify(input) {
         const texts = [];
@@ -898,9 +877,8 @@ class Printer {
             }
         }
         function loop(lst) {
-            if (lst.length === 0) {
+            if (lst.length === 0)
                 return;
-            }
             const element = lst[0];
             if (element === 'closure') {
                 printClosure(lst);
@@ -931,22 +909,17 @@ class Printer {
             loop(lst.slice(1));
         }
         const type = typeof input;
-        if (input === null) {
+        if (input === null)
             return `'()`;
-        }
-        if (type === 'boolean') {
+        if (type === 'boolean')
             return input ? '#t' : '#f';
-        }
-        if (type === 'number') {
+        if (type === 'number')
             return String(input);
-        }
-        if (type === 'string') {
+        if (type === 'string')
             return input;
-        }
         if (Array.isArray(input)) {
-            if (input.length === 0) {
+            if (input.length === 0)
                 return '()';
-            }
             texts.push('(');
             loop(input);
             texts.push(')');
@@ -955,12 +928,10 @@ class Printer {
         return JSON.stringify(input);
     }
 }
-if (typeof module === 'object') {
+if (typeof module === 'object')
     module.exports.Printer = Printer;
-}
 class Schemy {
-    constructor() {
-    }
+    constructor() { }
     evaluate(codeText, optionsParam, callback) {
         const options = optionsParam ? Options.parse(optionsParam) : new Options();
         const parser = new Parser();
@@ -970,18 +941,15 @@ class Schemy {
             return interpreter.evalCodeTree(ilCode, options, callback);
         }
         catch (e) {
-            if (typeof callback === 'function') {
+            if (typeof callback === 'function')
                 callback(e.toString());
-            }
-            else {
+            else
                 return e.toString();
-            }
         }
     }
 }
-if (typeof module === 'object') {
+if (typeof module === 'object')
     module.exports.Schemy = Schemy;
-}
 class CoreLib {
     inter;
     methods = {

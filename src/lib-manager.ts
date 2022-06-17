@@ -1,38 +1,43 @@
-interface ILib {
-	libEvalExpr(expr: any[], env: any[]): any;
+interface ILib
+{
+	libEvalExpr(expr: any[], env: any[]): any
 
-	builtinFunc: string[];
-	builtinHash: any;
+	builtinFunc: string[]
+	builtinHash: any
 }
 
-class LibManager {
-
-	public static getBuiltinLibs(libList: string[], inter: Interpreter): ILib[] {
+class LibManager
+{
+	public static getBuiltinLibs(libList: string[], inter: Interpreter): ILib[]
+	{
 		return libList.map(lib => LibManager.createLib(lib, inter))
 	}
 
-	public static createLib(libName: string, inter: Interpreter): ILib {
+	public static createLib(libName: string, inter: Interpreter): ILib
+	{
 		switch (libName) {
-			case 'core-lib'   :
+			case 'core-lib':
 				return new CoreLib(inter)
-			case 'ext-lib'    :
+			case 'ext-lib':
 				return new ExtLib(inter)
-			case 'list-lib'   :
+			case 'list-lib':
 				return new ListLib(inter)
-			case 'string-lib'   :
+			case 'string-lib':
 				return new StringLib(inter)
 			default:
-				throw 'Error: Unknown lib: ' + libName
+				throw `Error: Unknown lib: ${libName}`
 		}
 	}
 
-	public static manageImports(codeTree: any[], callback: (codeTree: any[]) => void): void {
-		const code: any[]            = []
+	public static manageImports(codeTree: any[], callback: (codeTree: any[]) => void): void
+	{
+		const code: any[] = []
 		let currentCodeIndex: number = 0
 
 		searchImports(currentCodeIndex)
 
-		function searchImports(index: number): void {
+		function searchImports(index: number): void
+		{
 			for (let i = index; i < codeTree.length; i++) {
 				const expr: any = codeTree[i]
 				if (Array.isArray(expr) && expr[0] === 'import') {
@@ -49,16 +54,17 @@ class LibManager {
 			callback(code)
 		}
 
-		function libManager_import_ready(libCodeTree: any[]): void {
+		function libManager_import_ready(libCodeTree: any[]): void
+		{
 			code.push(...libCodeTree)
 			searchImports(currentCodeIndex + 1)
 		}
 	}
 
-	public static importLibrary(libUrl: string | any, callback: (lib: any[]) => void): void {
-		if (typeof libUrl !== 'string' || libUrl.length === 0) {
+	public static importLibrary(libUrl: string | any, callback: (lib: any[]) => void): void
+	{
+		if (typeof libUrl !== 'string' || libUrl.length === 0)
 			throw 'Error: Empty library name'
-		}
 
 		const storedLib: any[] = IoService.getItemFromLocalStorage(libUrl)
 		if (Array.isArray(storedLib) && storedLib.length > 0) {
@@ -70,13 +76,13 @@ class LibManager {
 
 		IoService.get(libUrl, ioService_get_ready)
 
-		function ioService_get_ready(libText: string) {
-			if (typeof libUrl !== 'string' || libUrl.length === 0) {
+		function ioService_get_ready(libText: string)
+		{
+			if (typeof libUrl !== 'string' || libUrl.length === 0)
 				throw 'Error: Cannot load library content: ' + libName
-			}
 
 			const parser: Parser = new Parser()
-			const libCode        = parser.parse(libText)
+			const libCode = parser.parse(libText)
 
 			IoService.setItemToLocalStorage(libUrl, libCode)
 
