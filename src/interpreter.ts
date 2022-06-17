@@ -684,10 +684,14 @@ class Interpreter
 	private evalDebug(_expr: any[], env: any): void
 	{
 		this.isDebug = true
+		const maxLen = 500
 
 		const envDumpList: string[] = []
-		for (let i = Math.min(env.length - 1, 20); i > -1; i--)
-			envDumpList.push(`${env[i][0]} = ${Printer.stringify(env[i][1]).substr(0, 500)}`)
+		for (let i = Math.min(env.length - 1, 20); i > -1; i--) {
+			const envText  = Printer.stringify(env[i][1])
+			const textLine = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText
+			envDumpList.push(`${env[i][0]} = ${textLine}`)
+		}
 
 		this.options.printer(`Environment:\n${envDumpList.join('\n')}\n`)
 	}
