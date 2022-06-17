@@ -11,7 +11,6 @@ class Interpreter {
         'let': this.evalLet,
         'let*': this.evalLet,
         'letrec': this.evalLet,
-        'letrec*': this.evalLet,
         'and': this.evalAnd,
         'or': this.evalOr,
         'if': this.evalIf,
@@ -64,8 +63,12 @@ class Interpreter {
             case 'boolean':
             case 'undefined':
                 return expr;
-            case 'string':
-                return this.lookup(expr, env);
+            case 'string': {
+                const val = this.lookup(expr, env);
+                if (val === null)
+                    throw `Error: unspecified value of ${expr}`;
+                return val;
+            }
         }
         if (this.isDebug) {
             this.isDebug = false;
@@ -219,9 +222,8 @@ class Interpreter {
             }
         }
         else {
-            if (argsCount === 0) {
+            if (argsCount === 0)
                 throw `Error: No arguments given to proc ${procId}.`;
-            }
             this.addToEnv(params, args, 'arg', closureEnv);
         }
         const res = this.evalExprList(body, closureEnv);
@@ -255,7 +257,7 @@ class Interpreter {
     }
     evalLambda(expr, env) {
         if (expr.length < 3)
-            throw 'Error: Improper lambda. Given: ' + Printer.stringify(expr);
+            throw `Error: Improper lambda. Given: ${Printer.stringify(expr)}`;
         return ['closure', expr[1], expr.slice(2), env];
     }
     evalBegin(expr, env) {
@@ -278,20 +280,16 @@ class Interpreter {
         return this.evalExpr([proc, ...args], env);
     }
     evalLet(expr, env) {
+        const proc = expr[0];
         if (expr.length < 3)
-            throw 'Error: Improper \'let\' syntax. Missing body.';
-        if (typeof expr[1] === 'string' && Array.isArray(expr[2]))
+            throw `Error: Improper '${proc}' syntax. Missing body.`;
+        if (proc === 'let' && typeof expr[1] === 'string' && Array.isArray(expr[2]))
             return this.evalNamedLet(expr, env);
-        if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0]))
-            throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1]);
-        env.push(['#scope', 'let']);
+        if (!Array.isArray(expr[1]))
+            throw `Error: Improper '${proc}' bindings. Given: ${Printer.stringify(expr[1])}`;
+        env.push(['#scope', proc]);
         const scopeStart = env.length - 1;
-        const bindings = expr[1];
-        for (const binding of bindings) {
-            const name = binding[0];
-            const value = this.evalExpr(binding[1], env);
-            this.addToEnv(name, value, 'define', env);
-        }
+        this.bindLetVariables(proc, expr[1], env);
         const res = expr.length === 3
             ? this.evalExpr(expr[2], env)
             : this.evalExprList(expr.slice(2), env);
@@ -301,9 +299,32 @@ class Interpreter {
             this.clearEnv('#scope', env);
         return res;
     }
+    bindLetVariables(proc, bindings, env) {
+        switch (proc) {
+            case 'let': {
+                const values = bindings.map(binding => this.evalExpr(binding[1], env));
+                for (let i = 0; i < bindings.length; i++)
+                    this.addToEnv(bindings[i][0], values[i], proc, env);
+                break;
+            }
+            case 'let*': {
+                for (const binding of bindings)
+                    this.addToEnv(binding[0], this.evalExpr(binding[1], env), proc, env);
+                break;
+            }
+            case 'letrec': {
+                for (let i = 0; i < bindings.length; i++)
+                    this.addToEnv(bindings[i][0], null, proc, env);
+                const values = bindings.map(binding => this.evalExpr(binding[1], env));
+                for (let i = 0; i < bindings.length; i++)
+                    this.setVariableInEnv(bindings[i][0], values[i], env);
+                break;
+            }
+        }
+    }
     evalNamedLet(expr, env) {
         if (expr.length < 4)
-            throw 'Error: Improper named \'let\' syntax. Missing body.';
+            throw "Error: Improper named 'let' syntax. Missing body.";
         env.push(['#scope', 'let']);
         const scopeStart = env.length - 1;
         const bindings = expr[2];
@@ -417,14 +438,14 @@ class Interpreter {
                 throw `Error: 'case' requires a clause with one or more expressions.`;
             const isMatch = datum === 'else' ||
                 datum.some((e) => e === key || (e[0] === 'string' && e[1] === key));
-            if (isMatch) {
-                env.push(['#scope', 'case']);
-                const res = clause.length === 2
-                    ? this.evalExpr(clause[1], env)
-                    : this.evalExprList(clause.slice(1), env);
-                this.clearEnv('#scope', env);
-                return res;
-            }
+            if (!isMatch)
+                continue;
+            env.push(['#scope', 'case']);
+            const res = clause.length === 2
+                ? this.evalExpr(clause[1], env)
+                : this.evalExprList(clause.slice(1), env);
+            this.clearEnv('#scope', env);
+            return res;
         }
     }
     evalDisplay(expr, env) {
@@ -442,7 +463,7 @@ class Interpreter {
     }
     evalQuasiquote(expr, env) {
         if (expr.length !== 2)
-            throw 'Error: \'quasiquote\' requires 1 argument. Given: ' + (expr.length - 1);
+            throw `Error: 'quasiquote' requires 1 argument. Given: ${expr.length - 1}`;
         const isUnquote = (obj) => obj === ',';
         const isUnquoteSplicing = (obj) => obj === '@';
         const datum = expr[1];
@@ -494,13 +515,10 @@ class Interpreter {
         this.options.printer(`Expression:\n${Printer.stringify(expr)}\n`);
     }
     assertArity(expr, argsCount, optionalCount) {
-        const argText = (count) => count === 1
-            ? '1 argument'
-            : count + ' arguments';
-        if (optionalCount === 0 && expr.length !== argsCount + 1) {
+        const argText = (count) => count === 1 ? '1 argument' : count + ' arguments';
+        if (optionalCount === 0 && expr.length !== argsCount + 1)
             throw `Error: '${expr[0]}' requires ${argText(argsCount)}. Given: ${argText(expr.length - 1)}`;
-        }
-        else if (optionalCount !== 0 &&
+        if (optionalCount !== 0 &&
             (expr.length - 1 < argsCount - optionalCount || expr.length - 1 > argsCount)) {
             throw `Error: '${expr[0]}' requires from ${argText(argsCount - optionalCount)} to ${argText(argsCount)}.` +
                 ` Given: ${argText(expr.length - 1)}`;

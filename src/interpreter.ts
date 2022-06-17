@@ -12,7 +12,6 @@ class Interpreter
 		'let'    : this.evalLet,
 		'let*'   : this.evalLet,
 		'letrec' : this.evalLet,
-		'letrec*': this.evalLet,
 
 		'and'   : this.evalAnd,
 		'or'    : this.evalOr,
@@ -74,7 +73,7 @@ class Interpreter
 		const res: any[] = []
 
 		for (const expr of exprLst)
-			res.push(this.evalExpr(expr, env))
+			res.push( this.evalExpr(expr, env) )
 
 		return res
 	}
@@ -87,8 +86,14 @@ class Interpreter
 			case 'boolean'   :
 			case 'undefined' :
 				return expr
-			case 'string' :
-				return this.lookup(expr, env)
+			case 'string' : {
+				const val = this.lookup(expr, env)
+
+				if (val === null)
+					throw `Error: unspecified value of ${expr}`
+
+				return  val
+			}
 		}
 
 		if (this.isDebug) {
@@ -300,9 +305,8 @@ class Interpreter
 		}
 		else {
 			// Catch all ars
-			if (argsCount === 0) {
+			if (argsCount === 0)
 				throw `Error: No arguments given to proc ${procId}.`
-			}
 
 			// Bind all arguments to the parameter
 			this.addToEnv(params, args, 'arg', closureEnv)
@@ -327,19 +331,19 @@ class Interpreter
 	// (define (name . p) expr+) ; Procedure definition - catch all args
 	private evalDefine(expr: any[], env: any[]): void
 	{
-		if (Array.isArray(expr[1])) {
+		if ( Array.isArray(expr[1]) ) {
 			// Define procedure
-			const name: string  = expr[1][0]
-			const params: any   = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1)
-			const body: any[]   = expr.slice(2)
-			const lambda: any[] = ['lambda', params, ...body]
-			const closure: any  = this.evalExpr(lambda, env)
+			const name   : string = expr[1][0]
+			const params : any    = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1)
+			const body   : any[]  = expr.slice(2)
+			const lambda : any[]  = ['lambda', params, ...body]
+			const closure: any    = this.evalExpr(lambda, env)
 			this.addToEnv(name, closure, 'closure', env)
 		}
 		else {
 			// Define variable
-			const name: string = expr[1]
-			const value: any   = this.evalExpr(expr[2], env)
+			const name : string = expr[1]
+			const value: any    = this.evalExpr(expr[2], env)
 			this.addToEnv(name, value, 'define', env)
 		}
 	}
@@ -347,8 +351,8 @@ class Interpreter
 	// (set! name expr) ; Variable assignment
 	private evalSet(expr: any[], env: any[]): void
 	{
-		const name: string = expr[1]
-		const value: any   = this.evalExpr(expr[2], env)
+		const name : string = expr[1]
+		const value: any    = this.evalExpr(expr[2], env)
 
 		this.setVariableInEnv(name, value, env)
 	}
@@ -358,7 +362,7 @@ class Interpreter
 	private evalLambda(expr: any[], env: any[]): any[]
 	{
 		if (expr.length < 3)
-			throw 'Error: Improper lambda. Given: ' + Printer.stringify(expr)
+			throw `Error: Improper lambda. Given: ${ Printer.stringify(expr) }`
 
 		// (closure params body env)
 		return ['closure', expr[1], expr.slice(2), env]
@@ -397,24 +401,21 @@ class Interpreter
 	// (let ([name value]+) expr+)
 	private evalLet(expr: any[], env: any[]): any[]
 	{
-		if (expr.length < 3)
-			throw 'Error: Improper \'let\' syntax. Missing body.'
+		const proc: string = expr[0]
 
-		if (typeof expr[1] === 'string' && Array.isArray(expr[2]))
+		if (expr.length < 3)
+			throw `Error: Improper '${proc}' syntax. Missing body.`
+
+		if (proc === 'let' && typeof expr[1] === 'string' && Array.isArray(expr[2]))
 			return this.evalNamedLet(expr, env)
 
-		if (!Array.isArray(expr[1]) || !Array.isArray(expr[1][0]))
-			throw 'Error: Improper \'let\' bindings. Given: ' + Printer.stringify(expr[1])
+		if (! Array.isArray(expr[1]) )
+			throw `Error: Improper '${proc}' bindings. Given: ${ Printer.stringify(expr[1]) }`
 
-		env.push(['#scope', 'let'])
+		env.push(['#scope', proc])
 		const scopeStart: number = env.length - 1
 
-		const bindings: any[] = expr[1]
-		for (const binding of bindings) {
-			const name: string = binding[0]
-			const value: any   = this.evalExpr(binding[1], env)
-			this.addToEnv(name, value, 'define', env)
-		}
+		this.bindLetVariables(proc, expr[1], env)
 
 		const res: any = expr.length === 3
 			? this.evalExpr(expr[2], env)
@@ -428,27 +429,57 @@ class Interpreter
 		return res
 	}
 
+	private bindLetVariables(proc: string, bindings: any[], env: any[]): void {
+		switch (proc) {
+			case 'let': {
+				const values: any[] = bindings.map( binding => this.evalExpr(binding[1], env) )
+
+				for (let i = 0; i < bindings.length; i++)
+					this.addToEnv(bindings[i][0], values[i], proc, env)
+
+				break
+			}
+			case 'let*': {
+				for (const binding of bindings)
+					this.addToEnv(binding[0], this.evalExpr(binding[1], env), proc, env)
+
+				break
+			}
+			case 'letrec': {
+				for (let i = 0; i < bindings.length; i++)
+					this.addToEnv(bindings[i][0], null, proc, env)
+
+				const values: any[] = bindings.map( binding => this.evalExpr(binding[1], env) )
+
+				for (let i = 0; i < bindings.length; i++)
+					this.setVariableInEnv(bindings[i][0], values[i], env)
+
+				break
+			}
+		}
+	}
+
 	// (let name ([var value]+) expr+)
 	private evalNamedLet(expr: any[], env: any[]): any[]
 	{
 		if (expr.length < 4)
-			throw 'Error: Improper named \'let\' syntax. Missing body.'
+			throw "Error: Improper named 'let' syntax. Missing body."
 
 		env.push(['#scope', 'let'])
 		const scopeStart: number = env.length - 1
 
-		const bindings: any[] = expr[2]
-		const args: string[]  = []
+		const bindings: any[]    = expr[2]
+		const args    : string[] = []
 		for (const binding of bindings) {
-			const name: string = binding[0]
-			const value: any   = this.evalExpr(binding[1], env)
+			const name : string = binding[0]
+			const value: any    = this.evalExpr(binding[1], env)
 			this.addToEnv(name, value, 'let', env)
 			args.push(name)
 		}
 
-		const body: any[]   = expr.slice(3)
-		const lambda: any[] = ['lambda', args, ...body]
-		const closure: any  = this.evalExpr(lambda, env)
+		const body   : any[] = expr.slice(3)
+		const lambda : any[] = ['lambda', args, ...body]
+		const closure: any   = this.evalExpr(lambda, env)
 		this.addToEnv(expr[1], closure, 'closure', env)
 
 		const res: any = expr.length === 4
@@ -588,27 +619,31 @@ class Interpreter
 	//     (else     expr))
 	private evalCase(expr: any, env: any[]): any
 	{
-		const key: any       = this.evalExpr(expr[1], env)
+		const key    : any   = this.evalExpr(expr[1], env)
 		const clauses: any[] = expr.slice(2)
 
 		for (const clause of clauses) {
 			const datum: any[] | string = clause[0]
 			if (!Array.isArray(datum) && datum !== 'else')
-				throw `Error: 'case' requires datum to be in a list. Given: ${Printer.stringify(datum)}`
+				throw `Error: 'case' requires datum to be in a list. Given: ${ Printer.stringify(datum) }`
 			if (clause.length <= 1)
 				throw `Error: 'case' requires a clause with one or more expressions.`
 
 			const isMatch = datum === 'else' ||
 				datum.some((e: any | any[]) => e === key || (e[0] === 'string' && e[1] === key))
 
-			if (isMatch) {
-				env.push(['#scope', 'case'])
-				const res: any = clause.length === 2
-					? this.evalExpr(clause[1], env)
-					: this.evalExprList(clause.slice(1), env)
-				this.clearEnv('#scope', env)
-				return res
-			}
+			if (!isMatch)
+				continue
+
+			env.push(['#scope', 'case'])
+
+			const res: any = clause.length === 2
+				? this.evalExpr(clause[1], env)
+				: this.evalExprList(clause.slice(1), env)
+
+			this.clearEnv('#scope', env)
+
+			return res
 		}
 	}
 
@@ -641,12 +676,12 @@ class Interpreter
 	private evalQuasiquote(expr: any[], env: any[]): any
 	{
 		if (expr.length !== 2)
-			throw 'Error: \'quasiquote\' requires 1 argument. Given: ' + (expr.length - 1)
+			throw `Error: 'quasiquote' requires 1 argument. Given: ${expr.length - 1}`
 
 		const isUnquote         = (obj: any): boolean => obj === ','
 		const isUnquoteSplicing = (obj: any): boolean => obj === '@'
 
-		const datum: any    = expr[1]
+		const datum : any   = expr[1]
 		const output: any[] = []
 
 		for (let i: number = 0; i < datum.length; i++) {
@@ -725,14 +760,12 @@ class Interpreter
 
 	private assertArity(expr: any[], argsCount: number, optionalCount: number): void
 	{
-		const argText = (count: number) => count === 1
-			? '1 argument'
-			: count + ' arguments'
+		const argText = (count: number) => count === 1 ? '1 argument' : count + ' arguments'
 
-		if (optionalCount === 0 && expr.length !== argsCount + 1) {
+		if (optionalCount === 0 && expr.length !== argsCount + 1)
 			throw `Error: '${expr[0]}' requires ${argText(argsCount)}. Given: ${argText(expr.length - 1)}`
-		}
-		else if (optionalCount !== 0 &&
+
+		if (optionalCount !== 0 &&
 			(expr.length - 1 < argsCount - optionalCount || expr.length - 1 > argsCount)) {
 			throw `Error: '${expr[0]}' requires from ${argText(argsCount - optionalCount)} to ${argText(argsCount)}.` +
 			` Given: ${argText(expr.length - 1)}`
@@ -741,7 +774,7 @@ class Interpreter
 
 	private assertArgType(name: string, arg: any, argType: string): void
 	{
-		if (!this.assertType(arg, argType))
+		if (! this.assertType(arg, argType) )
 			throw `Error: '${name}' requires ${argType}. Given: ${typeof arg} ${this.argToStr(arg)}`
 	}
 

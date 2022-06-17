@@ -8,11 +8,11 @@ const schemy = new Schemy()
 
 describe('List declaration', function () {
 	describe('list constructor', function() {
-		it('empty list: \'() → \'()', function () {
+		it("empty list: '() → '()", function () {
 			assert.deepStrictEqual(schemy.evaluate('\'()'), [])
 		})
 
-		it('empty list: (list) → \'()', function () {
+		it("empty list: (list) → '()", function () {
 			assert.deepStrictEqual(schemy.evaluate('(list)'), [])
 		})
 
