@@ -86,14 +86,8 @@ class Interpreter
 			case 'boolean'   :
 			case 'undefined' :
 				return expr
-			case 'string' : {
-				const val = this.lookup(expr, env)
-
-				if (val === null)
-					throw `Error: unspecified value of ${expr}`
-
-				return  val
-			}
+			case 'string' :
+				return this.lookup(expr, env)
 		}
 
 		if (this.isDebug) {
@@ -174,7 +168,7 @@ class Interpreter
 
 	private addToEnv(symbol: string, value: any, modifier: string, env: any[]): void
 	{
-		if (typeof value === 'undefined')
+		if (value === undefined)
 			throw `Error: cannot set unspecified value to symbol: ${symbol}.`
 
 		for (let i = env.length - 1; i > -1; i--) {
@@ -190,17 +184,17 @@ class Interpreter
 		env.push([symbol, value, modifier])
 	}
 
-	private setVariableInEnv(symbol: string, value: any, env: any[]): void
+	private setVariableInEnv(symbol: string, value: any, modifier: string, env: any[]): void
 	{
-		if (typeof value === 'undefined')
-			throw `Error: cannot set unspecified value to symbol: ${symbol}.`
+		if (value === undefined)
+			throw `Error: Cannot set unspecified value to identifier: ${symbol}.`
 
 		for (let i = env.length - 1; i > -1; i--) {
 			const cellKey = env[i][0]
 
 			if (cellKey === symbol) {
 				env[i][1] = value
-				env[i][2] = 'set'
+				env[i][2] = modifier
 				return
 			}
 		}
@@ -211,8 +205,14 @@ class Interpreter
 	private lookup(symbol: string, env: any[]): any
 	{
 		for (let i = env.length - 1; i > -1; i--) {
-			if (symbol === env[i][0])
-				return env[i][1]
+			if (symbol === env[i][0]) {
+				const val: any = env[i][1]
+
+				if (val === null)
+					throw `Error: Unspecified value of identifier: ${symbol}`
+
+				return  val
+			}
 		}
 
 		for (const lib of this.libs) {
@@ -354,7 +354,7 @@ class Interpreter
 		const name : string = expr[1]
 		const value: any    = this.evalExpr(expr[2], env)
 
-		this.setVariableInEnv(name, value, env)
+		this.setVariableInEnv(name, value, 'set!', env)
 	}
 
 	// (lambda (p*)   expr+)
@@ -429,30 +429,32 @@ class Interpreter
 		return res
 	}
 
-	private bindLetVariables(proc: string, bindings: any[], env: any[]): void {
+	private bindLetVariables(proc: string, bindings: [string, any][], env: any[]): void {
 		switch (proc) {
 			case 'let': {
-				const values: any[] = bindings.map( binding => this.evalExpr(binding[1], env) )
+				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
 
 				for (let i = 0; i < bindings.length; i++)
 					this.addToEnv(bindings[i][0], values[i], proc, env)
 
 				break
 			}
+
 			case 'let*': {
 				for (const binding of bindings)
 					this.addToEnv(binding[0], this.evalExpr(binding[1], env), proc, env)
 
 				break
 			}
+
 			case 'letrec': {
 				for (let i = 0; i < bindings.length; i++)
 					this.addToEnv(bindings[i][0], null, proc, env)
 
-				const values: any[] = bindings.map( binding => this.evalExpr(binding[1], env) )
+				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
 
 				for (let i = 0; i < bindings.length; i++)
-					this.setVariableInEnv(bindings[i][0], values[i], env)
+					this.setVariableInEnv(bindings[i][0], values[i], proc, env)
 
 				break
 			}
@@ -520,19 +522,18 @@ class Interpreter
 	// (or expr expr+) => the first truthy or the last one
 	private evalOr(expr: any[], env: any[]): any
 	{
+		if (expr.length === 1)
+			return false
+
+		const val = this.evalExpr(expr[1], env)
+
 		switch (expr.length) {
-			case 1:
-				return false
 			case 2:
 				return this.evalExpr(expr[1], env)
-			case 3: {
-				const val = this.evalExpr(expr[1], env)
+			case 3:
 				return this.isTrue(val) ? val : this.evalExpr(expr[2], env)
-			}
-			default: {
-				const val = this.evalExpr(expr[1], env)
+			default:
 				return this.isTrue(val) ? val : this.evalOr(expr.slice(1), env)
-			}
 		}
 	}
 
@@ -540,9 +541,9 @@ class Interpreter
 	// (if test then)
 	private evalIf(expr: any[], env: any[]): any
 	{
-		return this.isTrue(this.evalExpr(expr[1], env))
-			? this.evalExpr(expr[2], env)
-			: this.evalExpr(expr[3], env)
+		return this.isTrue( this.evalExpr(expr[1], env) )
+				? this.evalExpr(expr[2], env)
+				: this.evalExpr(expr[3], env)
 	}
 
 	// (unless test-expr
@@ -550,12 +551,12 @@ class Interpreter
 	private evalUnless(expr: any[], env: any[]): void
 	{
 		if (expr.length === 1)
-			throw 'Error: Empty \'unless\''
+			throw "Error: Empty 'unless'"
 
 		if (expr.length === 2)
-			throw 'Error: Empty \'unless\' body'
+			throw "Error: Empty 'unless' body"
 
-		if (this.isTrue(this.evalExpr(expr[1], env)))
+		if ( this.isTrue(this.evalExpr(expr[1], env)) )
 			return
 
 		env.push(['#scope', 'unless'])
@@ -573,10 +574,10 @@ class Interpreter
 	private evalWhen(expr: any[], env: any[]): void
 	{
 		if (expr.length === 1)
-			throw 'Error: Empty \'when\''
+			throw "Error: Empty 'when'"
 
 		if (expr.length === 2)
-			throw 'Error: Empty \'when\' body'
+			throw "Error: Empty 'when' body"
 
 		if (! this.isTrue(this.evalExpr(expr[1], env)) )
 			return
@@ -592,9 +593,9 @@ class Interpreter
 	}
 
 	// (cond
-	//     (test expr+)
+	//     [test expr+]
 	//     ...
-	//     (else expr+))
+	//     [else expr+])
 	private evalCond(expr: any, env: any[]): any
 	{
 		const clauses: any[] = expr.slice(1)
@@ -602,10 +603,12 @@ class Interpreter
 
 		for (const clause of clauses) {
 			if (clause[0] === 'else' || this.isTrue(this.evalExpr(clause[0], env))) {
-				const res: any = clause.length === 2
+				const res = clause.length === 2
 					? this.evalExpr(clause[1], env)
 					: this.evalExprList(clause.slice(1), env)
+
 				this.clearEnv('#scope', env)
+
 				return res
 			}
 		}
@@ -614,9 +617,9 @@ class Interpreter
 	}
 
 	// (case expr
-	//     ((datum+) expr)
+	//     [(datum+) expr]
 	//     ...
-	//     (else     expr))
+	//     [else     expr])
 	private evalCase(expr: any, env: any[]): any
 	{
 		const key    : any   = this.evalExpr(expr[1], env)
@@ -637,7 +640,7 @@ class Interpreter
 
 			env.push(['#scope', 'case'])
 
-			const res: any = clause.length === 2
+			const res = clause.length === 2
 				? this.evalExpr(clause[1], env)
 				: this.evalExprList(clause.slice(1), env)
 

@@ -63,12 +63,8 @@ class Interpreter {
             case 'boolean':
             case 'undefined':
                 return expr;
-            case 'string': {
-                const val = this.lookup(expr, env);
-                if (val === null)
-                    throw `Error: unspecified value of ${expr}`;
-                return val;
-            }
+            case 'string':
+                return this.lookup(expr, env);
         }
         if (this.isDebug) {
             this.isDebug = false;
@@ -126,7 +122,7 @@ class Interpreter {
         return args;
     }
     addToEnv(symbol, value, modifier, env) {
-        if (typeof value === 'undefined')
+        if (value === undefined)
             throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
         for (let i = env.length - 1; i > -1; i--) {
             const cellKey = env[i][0];
@@ -137,14 +133,14 @@ class Interpreter {
         }
         env.push([symbol, value, modifier]);
     }
-    setVariableInEnv(symbol, value, env) {
-        if (typeof value === 'undefined')
-            throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
+    setVariableInEnv(symbol, value, modifier, env) {
+        if (value === undefined)
+            throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
         for (let i = env.length - 1; i > -1; i--) {
             const cellKey = env[i][0];
             if (cellKey === symbol) {
                 env[i][1] = value;
-                env[i][2] = 'set';
+                env[i][2] = modifier;
                 return;
             }
         }
@@ -152,8 +148,12 @@ class Interpreter {
     }
     lookup(symbol, env) {
         for (let i = env.length - 1; i > -1; i--) {
-            if (symbol === env[i][0])
-                return env[i][1];
+            if (symbol === env[i][0]) {
+                const val = env[i][1];
+                if (val === null)
+                    throw `Error: Unspecified value of identifier: ${symbol}`;
+                return val;
+            }
         }
         for (const lib of this.libs) {
             if (lib.builtinHash[symbol])
@@ -253,7 +253,7 @@ class Interpreter {
     evalSet(expr, env) {
         const name = expr[1];
         const value = this.evalExpr(expr[2], env);
-        this.setVariableInEnv(name, value, env);
+        this.setVariableInEnv(name, value, 'set!', env);
     }
     evalLambda(expr, env) {
         if (expr.length < 3)
@@ -302,7 +302,7 @@ class Interpreter {
     bindLetVariables(proc, bindings, env) {
         switch (proc) {
             case 'let': {
-                const values = bindings.map(binding => this.evalExpr(binding[1], env));
+                const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
                     this.addToEnv(bindings[i][0], values[i], proc, env);
                 break;
@@ -315,9 +315,9 @@ class Interpreter {
             case 'letrec': {
                 for (let i = 0; i < bindings.length; i++)
                     this.addToEnv(bindings[i][0], null, proc, env);
-                const values = bindings.map(binding => this.evalExpr(binding[1], env));
+                const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
-                    this.setVariableInEnv(bindings[i][0], values[i], env);
+                    this.setVariableInEnv(bindings[i][0], values[i], proc, env);
                 break;
             }
         }
@@ -365,19 +365,16 @@ class Interpreter {
         }
     }
     evalOr(expr, env) {
+        if (expr.length === 1)
+            return false;
+        const val = this.evalExpr(expr[1], env);
         switch (expr.length) {
-            case 1:
-                return false;
             case 2:
                 return this.evalExpr(expr[1], env);
-            case 3: {
-                const val = this.evalExpr(expr[1], env);
+            case 3:
                 return this.isTrue(val) ? val : this.evalExpr(expr[2], env);
-            }
-            default: {
-                const val = this.evalExpr(expr[1], env);
+            default:
                 return this.isTrue(val) ? val : this.evalOr(expr.slice(1), env);
-            }
         }
     }
     evalIf(expr, env) {
@@ -387,9 +384,9 @@ class Interpreter {
     }
     evalUnless(expr, env) {
         if (expr.length === 1)
-            throw 'Error: Empty \'unless\'';
+            throw "Error: Empty 'unless'";
         if (expr.length === 2)
-            throw 'Error: Empty \'unless\' body';
+            throw "Error: Empty 'unless' body";
         if (this.isTrue(this.evalExpr(expr[1], env)))
             return;
         env.push(['#scope', 'unless']);
@@ -401,9 +398,9 @@ class Interpreter {
     }
     evalWhen(expr, env) {
         if (expr.length === 1)
-            throw 'Error: Empty \'when\'';
+            throw "Error: Empty 'when'";
         if (expr.length === 2)
-            throw 'Error: Empty \'when\' body';
+            throw "Error: Empty 'when' body";
         if (!this.isTrue(this.evalExpr(expr[1], env)))
             return;
         env.push(['#scope', 'when']);

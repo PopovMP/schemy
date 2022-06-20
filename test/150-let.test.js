@@ -62,7 +62,7 @@ describe('letrec', function () {
 	it('(letrec ([a 5] [b a]) b) ; Exception', function () {
 		assert.strictEqual(schemy.evaluate(`
 				(letrec ([a 5] [b a]) b)
-		`), 'Error: unspecified value of a')
+		`), 'Error: Unspecified value of identifier: a')
 	})
 
 	it('Mutual recursion', function () {
@@ -83,7 +83,7 @@ describe('letrec', function () {
 	it('mixed binding => Exception', function () {
 		assert.strictEqual(schemy.evaluate(`
 			(letrec ([a 5] [b a]) b)
-		`), 'Error: unspecified value of a')
+		`), 'Error: Unspecified value of identifier: a')
 	})
 })
 
