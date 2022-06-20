@@ -301,54 +301,40 @@ class Interpreter {
             Env.clear('#scope', env);
         return res;
     }
-    bindLetVariables(proc, bindings, env) {
-        switch (proc) {
+    evalNamedLet(expr, env) {
+        if (expr.length < 4)
+            throw "Error: Improper named 'let' syntax. Missing body.";
+        const name = expr[1];
+        const vars = expr[2].map((binding) => binding[0]);
+        const values = expr[2].map((binding) => binding[1]);
+        const body = expr.slice(3);
+        const begin = ['begin',
+            ['define', name, ['lambda', [...vars], ...body]],
+            [name, ...values]];
+        return this.evalBegin(begin, env);
+    }
+    bindLetVariables(form, bindings, env) {
+        switch (form) {
             case 'let': {
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
-                    Env.add(bindings[i][0], values[i], proc, env);
+                    Env.add(bindings[i][0], values[i], form, env);
                 break;
             }
             case 'let*': {
                 for (const binding of bindings)
-                    Env.add(binding[0], this.evalExpr(binding[1], env), proc, env);
+                    Env.add(binding[0], this.evalExpr(binding[1], env), form, env);
                 break;
             }
             case 'letrec': {
                 for (let i = 0; i < bindings.length; i++)
-                    Env.add(bindings[i][0], null, proc, env);
+                    Env.add(bindings[i][0], null, form, env);
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
-                    Env.set(bindings[i][0], values[i], proc, env);
+                    Env.set(bindings[i][0], values[i], form, env);
                 break;
             }
         }
-    }
-    evalNamedLet(expr, env) {
-        if (expr.length < 4)
-            throw "Error: Improper named 'let' syntax. Missing body.";
-        env.push(['#scope', 'let']);
-        const scopeStart = env.length - 1;
-        const bindings = expr[2];
-        const args = [];
-        for (const binding of bindings) {
-            const name = binding[0];
-            const value = this.evalExpr(binding[1], env);
-            Env.add(name, value, 'let', env);
-            args.push(name);
-        }
-        const body = expr.slice(3);
-        const lambda = ['lambda', args, ...body];
-        const closure = this.evalExpr(lambda, env);
-        Env.add(expr[1], closure, 'closure', env);
-        const res = expr.length === 4
-            ? this.evalExpr(expr[3], env)
-            : this.evalExprList(expr.slice(3), env);
-        if (Array.isArray(res) && res[0] === 'closure')
-            env.splice(scopeStart, 1);
-        else
-            Env.clear('#scope', env);
-        return res;
     }
     evalAnd(expr, env) {
         if (expr.length === 1)

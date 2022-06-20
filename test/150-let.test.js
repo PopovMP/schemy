@@ -88,13 +88,19 @@ describe('letrec', function () {
 })
 
 describe('named let', function () {
-	it('Named let 1', function () {
+	it('no bindings', function () {
+		assert.strictEqual(schemy.evaluate(`
+			(let foo () 5)
+		`), 5)
+	})
+
+	it('one binding', function () {
 		assert.strictEqual(schemy.evaluate(`
 			(let foo ([a 5]) a)
 		`), 5)
 	})
 
-	it('Named let 2', function () {
+	it('two bindings with recursion', function () {
 		assert.strictEqual(schemy.evaluate(`
 			(let foo ([n 5] [acc 0])
 			    (if (> n 0)
@@ -103,7 +109,7 @@ describe('named let', function () {
 		`), 15)
 	})
 
-	it('Named let 3', function () {
+	it('three bindings with recursion', function () {
 		assert.deepStrictEqual(schemy.evaluate(`
 		    (let loop ([nums '(1 -4 5 2 -3 0 -12 6 8 -2)]
 		               [pos  '()]

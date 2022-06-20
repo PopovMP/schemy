@@ -349,71 +349,54 @@ class Interpreter
 		return res
 	}
 
-	private bindLetVariables(proc: string, bindings: [string, any][], env: any[]): void {
-		switch (proc) {
+	// (let name ([var value]+) expr+)
+	private evalNamedLet(expr: any[], env: any[]): any
+	{
+		if (expr.length < 4)
+			throw "Error: Improper named 'let' syntax. Missing body."
+
+		const name   = expr[1]
+		const vars   = expr[2].map( (binding: [string, any]) => binding[0] )
+		const values = expr[2].map( (binding: [string, any]) => binding[1] )
+		const body   = expr.slice(3)
+
+		const begin = ['begin',
+			['define', name, ['lambda', [...vars], ...body]],
+			[name, ...values]]
+
+		return this.evalBegin(begin, env)
+	}
+
+	private bindLetVariables(form: string, bindings: [string, any][], env: any[]): void {
+		switch (form) {
 			case 'let': {
 				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
 
 				for (let i = 0; i < bindings.length; i++)
-					Env.add(bindings[i][0], values[i], proc, env)
+					Env.add(bindings[i][0], values[i], form, env)
 
 				break
 			}
 
 			case 'let*': {
 				for (const binding of bindings)
-					Env.add(binding[0], this.evalExpr(binding[1], env), proc, env)
+					Env.add(binding[0], this.evalExpr(binding[1], env), form, env)
 
 				break
 			}
 
 			case 'letrec': {
 				for (let i = 0; i < bindings.length; i++)
-					Env.add(bindings[i][0], null, proc, env)
+					Env.add(bindings[i][0], null, form, env)
 
 				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
 
 				for (let i = 0; i < bindings.length; i++)
-					Env.set(bindings[i][0], values[i], proc, env)
+					Env.set(bindings[i][0], values[i], form, env)
 
 				break
 			}
 		}
-	}
-
-	// (let name ([var value]+) expr+)
-	private evalNamedLet(expr: any[], env: any[]): any[]
-	{
-		if (expr.length < 4)
-			throw "Error: Improper named 'let' syntax. Missing body."
-
-		env.push(['#scope', 'let'])
-		const scopeStart: number = env.length - 1
-
-		const bindings: any[]    = expr[2]
-		const args    : string[] = []
-		for (const binding of bindings) {
-			const name : string = binding[0]
-			const value: any    = this.evalExpr(binding[1], env)
-			Env.add(name, value, 'let', env)
-			args.push(name)
-		}
-
-		const body   : any[] = expr.slice(3)
-		const lambda : any[] = ['lambda', args, ...body]
-		const closure: any   = this.evalExpr(lambda, env)
-		Env.add(expr[1], closure, 'closure', env)
-
-		const res = expr.length === 4
-			? this.evalExpr(expr[3], env)
-			: this.evalExprList(expr.slice(3), env)
-
-		if (Array.isArray(res) && res[0] === 'closure')
-			env.splice(scopeStart, 1)
-		else
-			Env.clear('#scope', env)
-
-		return res
 	}
 
 	// (and)            => true
