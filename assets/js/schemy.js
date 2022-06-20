@@ -70,6 +70,7 @@ class Interpreter {
         'let': this.evalLet,
         'let*': this.evalLet,
         'letrec': this.evalLet,
+        'do': this.evalDo,
         'and': this.evalAnd,
         'or': this.evalOr,
         'if': this.evalIf,
@@ -335,6 +336,33 @@ class Interpreter {
                 break;
             }
         }
+    }
+    evalDo(expr, env) {
+        env.push(['#scope', 'do']);
+        const bindings = expr[1];
+        const inits = bindings.map((binding) => this.evalExpr(binding[1], env));
+        for (let i = 0; i < bindings.length; i++)
+            Env.add(bindings[i][0], inits[i], 'init', env);
+        while (!this.isTrue(this.evalExpr(expr[2][0], env))) {
+            if (expr.length === 4)
+                this.evalExpr(expr[3], env);
+            else if (expr.length > 4)
+                this.evalExprList(expr.slice(3), env);
+            const stepValues = [];
+            for (const binding of bindings) {
+                if (binding.length === 3)
+                    stepValues.push(this.evalExpr(binding[2], env));
+            }
+            for (const binding of bindings) {
+                if (binding.length === 3)
+                    Env.set(binding[0], stepValues.shift(), 'step', env);
+            }
+        }
+        const res = expr[2].length === 2
+            ? this.evalExpr(expr[2][1], env)
+            : this.evalExprList(expr[2].slice(1), env);
+        Env.clear('#scope', env);
+        return res;
     }
     evalAnd(expr, env) {
         if (expr.length === 1)

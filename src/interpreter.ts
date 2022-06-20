@@ -12,6 +12,7 @@ class Interpreter
 		'let'    : this.evalLet,
 		'let*'   : this.evalLet,
 		'letrec' : this.evalLet,
+		'do'     : this.evalDo,
 
 		'and'   : this.evalAnd,
 		'or'    : this.evalOr,
@@ -397,6 +398,46 @@ class Interpreter
 				break
 			}
 		}
+	}
+
+	// (do ([name init step]+) (test res) expr+)
+	private evalDo(expr: any[], env: any[]): any[]
+	{
+		env.push(['#scope', 'do'])
+
+		const bindings: [string, any, any][] = expr[1]
+
+		// Eval inits
+		const inits: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
+		for (let i = 0; i < bindings.length; i++)
+			Env.add(bindings[i][0], inits[i], 'init', env)
+
+		while(! this.isTrue( this.evalExpr(expr[2][0], env) )) {
+			// Eval body
+			if (expr.length === 4)
+				this.evalExpr(expr[3], env)
+			else if (expr.length > 4)
+				this.evalExprList(expr.slice(3), env)
+
+			// Eval steps
+			const stepValues = []
+			for (const binding of bindings) {
+				if (binding.length === 3)
+					stepValues.push( this.evalExpr(binding[2], env) )
+			}
+			for (const binding of bindings) {
+				if (binding.length === 3)
+					Env.set(binding[0], stepValues.shift(), 'step', env)
+			}
+		}
+
+		const res = expr[2].length === 2
+			? this.evalExpr(expr[2][1], env)
+			: this.evalExprList(expr[2].slice(1), env)
+
+		Env.clear('#scope', env)
+
+		return res
 	}
 
 	// (and)            => true
