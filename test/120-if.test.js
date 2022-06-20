@@ -53,6 +53,6 @@ describe('if', function () {
 
 	it('(define a (if #f 1)) -> throws', function () {
 		assert.strictEqual(schemy.evaluate('(define a (if #f 1))'),
-			'Error: cannot set unspecified value to symbol: a.')
+			'Error: Cannot set unspecified value to identifier: a.')
 	})
 })

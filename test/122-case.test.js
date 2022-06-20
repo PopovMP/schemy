@@ -58,7 +58,7 @@ describe('case', function () {
                             [(0 2 4 6 8) "even"]
                             [(1 3 5 7 9)  "odd"]))
             type                            `),
-			'Error: cannot set unspecified value to symbol: type.')
+			'Error: Cannot set unspecified value to identifier: type.')
 	})
 
 	it('multiple expressions', function () {

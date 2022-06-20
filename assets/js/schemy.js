@@ -1,4 +1,63 @@
 "use strict";
+class Env {
+    static add(symbol, value, modifier, env) {
+        if (value === undefined)
+            throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
+        for (let i = env.length - 1; i > -1; i--) {
+            const cellKey = env[i][0];
+            if (cellKey === '#scope')
+                break;
+            if (cellKey === symbol)
+                throw `Error: Identifier already defined: ${symbol}`;
+        }
+        env.push([symbol, value, modifier]);
+    }
+    static set(symbol, value, modifier, env) {
+        if (value === undefined)
+            throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
+        for (let i = env.length - 1; i > -1; i--) {
+            const cellKey = env[i][0];
+            if (cellKey === symbol) {
+                env[i][1] = value;
+                env[i][2] = modifier;
+                return;
+            }
+        }
+        throw `Error: Identifier is not defined: ${symbol}`;
+    }
+    static lookup(symbol, env, libs) {
+        for (let i = env.length - 1; i > -1; i--) {
+            if (symbol === env[i][0]) {
+                const val = env[i][1];
+                if (val === null)
+                    throw `Error: Unspecified value of identifier: ${symbol}`;
+                return val;
+            }
+        }
+        for (const lib of libs) {
+            if (lib.builtinHash[symbol])
+                return symbol;
+        }
+        throw `Error: Unbound identifier: ${symbol}`;
+    }
+    static has(symbol, env, libs) {
+        for (let i = env.length - 1; i > -1; i--) {
+            if (symbol === env[i][0])
+                return true;
+        }
+        for (const lib of libs) {
+            if (lib.builtinHash[symbol])
+                return true;
+        }
+        return false;
+    }
+    static clear(tag, env) {
+        let cell;
+        do {
+            cell = env.pop();
+        } while (cell[0] !== tag);
+    }
+}
 class Interpreter {
     isDebug;
     libs;
@@ -64,7 +123,7 @@ class Interpreter {
             case 'undefined':
                 return expr;
             case 'string':
-                return this.lookup(expr, env);
+                return Env.lookup(expr, env, this.libs);
         }
         if (this.isDebug) {
             this.isDebug = false;
@@ -121,69 +180,12 @@ class Interpreter {
         }
         return args;
     }
-    addToEnv(symbol, value, modifier, env) {
-        if (value === undefined)
-            throw `Error: cannot set unspecified value to symbol: ${symbol}.`;
-        for (let i = env.length - 1; i > -1; i--) {
-            const cellKey = env[i][0];
-            if (cellKey === '#scope')
-                break;
-            if (cellKey === symbol)
-                throw `Error: Identifier already defined: ${symbol}`;
-        }
-        env.push([symbol, value, modifier]);
-    }
-    setVariableInEnv(symbol, value, modifier, env) {
-        if (value === undefined)
-            throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
-        for (let i = env.length - 1; i > -1; i--) {
-            const cellKey = env[i][0];
-            if (cellKey === symbol) {
-                env[i][1] = value;
-                env[i][2] = modifier;
-                return;
-            }
-        }
-        throw `Error: Identifier is not defined: ${symbol}`;
-    }
-    lookup(symbol, env) {
-        for (let i = env.length - 1; i > -1; i--) {
-            if (symbol === env[i][0]) {
-                const val = env[i][1];
-                if (val === null)
-                    throw `Error: Unspecified value of identifier: ${symbol}`;
-                return val;
-            }
-        }
-        for (const lib of this.libs) {
-            if (lib.builtinHash[symbol])
-                return symbol;
-        }
-        throw `Error: Unbound identifier: ${symbol}`;
-    }
-    isDefined(symbol, env) {
-        for (let i = env.length - 1; i > -1; i--) {
-            if (symbol === env[i][0])
-                return true;
-        }
-        for (const lib of this.libs) {
-            if (lib.builtinHash[symbol])
-                return true;
-        }
-        return false;
-    }
-    clearEnv(tag, env) {
-        let cell;
-        do {
-            cell = env.pop();
-        } while (cell[0] !== tag);
-    }
     evalApplication(expr, env) {
         const proc = expr[0];
         const isNamed = typeof proc === 'string';
         const procId = isNamed ? proc : proc[0] === 'lambda' ? 'lambda' : 'expression';
-        const closure = isNamed ? this.lookup(proc, env) : this.evalExpr(proc, env);
-        if (typeof closure === 'string' && this.isDefined(closure, env))
+        const closure = isNamed ? Env.lookup(proc, env, this.libs) : this.evalExpr(proc, env);
+        if (typeof closure === 'string' && Env.has(closure, env, this.libs))
             return this.evalExpr([this.evalExpr(closure, env), ...expr.slice(1)], env);
         if (!Array.isArray(closure) || closure[0] !== 'closure')
             throw `Error: Improper function application. Given: ${Printer.stringify(closure)}`;
@@ -213,25 +215,25 @@ class Interpreter {
             }
             for (let i = 0; i < params.length; i++) {
                 if (params[i] === '.') {
-                    this.addToEnv(params[i + 1], args.slice(i), 'arg', closureEnv);
+                    Env.add(params[i + 1], args.slice(i), 'arg', closureEnv);
                     break;
                 }
                 else {
-                    this.addToEnv(params[i], args[i], 'arg', closureEnv);
+                    Env.add(params[i], args[i], 'arg', closureEnv);
                 }
             }
         }
         else {
             if (argsCount === 0)
                 throw `Error: No arguments given to proc ${procId}.`;
-            this.addToEnv(params, args, 'arg', closureEnv);
+            Env.add(params, args, 'arg', closureEnv);
         }
         const res = this.evalExprList(body, closureEnv);
         if (Array.isArray(res) && res[0] === 'closure') {
             closureEnv.splice(scopeStart, 1);
         }
         else {
-            this.clearEnv('#scope', closureEnv);
+            Env.clear('#scope', closureEnv);
         }
         return res;
     }
@@ -242,18 +244,18 @@ class Interpreter {
             const body = expr.slice(2);
             const lambda = ['lambda', params, ...body];
             const closure = this.evalExpr(lambda, env);
-            this.addToEnv(name, closure, 'closure', env);
+            Env.add(name, closure, 'closure', env);
         }
         else {
             const name = expr[1];
             const value = this.evalExpr(expr[2], env);
-            this.addToEnv(name, value, 'define', env);
+            Env.add(name, value, 'define', env);
         }
     }
     evalSet(expr, env) {
         const name = expr[1];
         const value = this.evalExpr(expr[2], env);
-        this.setVariableInEnv(name, value, 'set!', env);
+        Env.set(name, value, 'set!', env);
     }
     evalLambda(expr, env) {
         if (expr.length < 3)
@@ -271,7 +273,7 @@ class Interpreter {
         if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
         else
-            this.clearEnv('#scope', env);
+            Env.clear('#scope', env);
         return res;
     }
     evalApply(expr, env) {
@@ -296,7 +298,7 @@ class Interpreter {
         if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
         else
-            this.clearEnv('#scope', env);
+            Env.clear('#scope', env);
         return res;
     }
     bindLetVariables(proc, bindings, env) {
@@ -304,20 +306,20 @@ class Interpreter {
             case 'let': {
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
-                    this.addToEnv(bindings[i][0], values[i], proc, env);
+                    Env.add(bindings[i][0], values[i], proc, env);
                 break;
             }
             case 'let*': {
                 for (const binding of bindings)
-                    this.addToEnv(binding[0], this.evalExpr(binding[1], env), proc, env);
+                    Env.add(binding[0], this.evalExpr(binding[1], env), proc, env);
                 break;
             }
             case 'letrec': {
                 for (let i = 0; i < bindings.length; i++)
-                    this.addToEnv(bindings[i][0], null, proc, env);
+                    Env.add(bindings[i][0], null, proc, env);
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
                 for (let i = 0; i < bindings.length; i++)
-                    this.setVariableInEnv(bindings[i][0], values[i], proc, env);
+                    Env.set(bindings[i][0], values[i], proc, env);
                 break;
             }
         }
@@ -332,36 +334,33 @@ class Interpreter {
         for (const binding of bindings) {
             const name = binding[0];
             const value = this.evalExpr(binding[1], env);
-            this.addToEnv(name, value, 'let', env);
+            Env.add(name, value, 'let', env);
             args.push(name);
         }
         const body = expr.slice(3);
         const lambda = ['lambda', args, ...body];
         const closure = this.evalExpr(lambda, env);
-        this.addToEnv(expr[1], closure, 'closure', env);
+        Env.add(expr[1], closure, 'closure', env);
         const res = expr.length === 4
             ? this.evalExpr(expr[3], env)
             : this.evalExprList(expr.slice(3), env);
         if (Array.isArray(res) && res[0] === 'closure')
             env.splice(scopeStart, 1);
         else
-            this.clearEnv('#scope', env);
+            Env.clear('#scope', env);
         return res;
     }
     evalAnd(expr, env) {
+        if (expr.length === 1)
+            return true;
+        const val = this.evalExpr(expr[1], env);
         switch (expr.length) {
-            case 1:
-                return true;
             case 2:
-                return this.evalExpr(expr[1], env);
-            case 3: {
-                const val = this.evalExpr(expr[1], env);
+                return val;
+            case 3:
                 return this.isTrue(val) ? this.evalExpr(expr[2], env) : val;
-            }
-            default: {
-                const val = this.evalExpr(expr[1], env);
+            default:
                 return this.isTrue(val) ? this.evalAnd(expr.slice(1), env) : val;
-            }
         }
     }
     evalOr(expr, env) {
@@ -370,7 +369,7 @@ class Interpreter {
         const val = this.evalExpr(expr[1], env);
         switch (expr.length) {
             case 2:
-                return this.evalExpr(expr[1], env);
+                return val;
             case 3:
                 return this.isTrue(val) ? val : this.evalExpr(expr[2], env);
             default:
@@ -394,7 +393,7 @@ class Interpreter {
             this.evalExpr(expr[2], env);
         else
             this.evalExprList(expr.slice(2), env);
-        this.clearEnv('#scope', env);
+        Env.clear('#scope', env);
     }
     evalWhen(expr, env) {
         if (expr.length === 1)
@@ -408,7 +407,7 @@ class Interpreter {
             this.evalExpr(expr[2], env);
         else
             this.evalExprList(expr.slice(2), env);
-        this.clearEnv('#scope', env);
+        Env.clear('#scope', env);
     }
     evalCond(expr, env) {
         const clauses = expr.slice(1);
@@ -418,11 +417,11 @@ class Interpreter {
                 const res = clause.length === 2
                     ? this.evalExpr(clause[1], env)
                     : this.evalExprList(clause.slice(1), env);
-                this.clearEnv('#scope', env);
+                Env.clear('#scope', env);
                 return res;
             }
         }
-        this.clearEnv('#scope', env);
+        Env.clear('#scope', env);
     }
     evalCase(expr, env) {
         const key = this.evalExpr(expr[1], env);
@@ -441,7 +440,7 @@ class Interpreter {
             const res = clause.length === 2
                 ? this.evalExpr(clause[1], env)
                 : this.evalExprList(clause.slice(1), env);
-            this.clearEnv('#scope', env);
+            Env.clear('#scope', env);
             return res;
         }
     }
