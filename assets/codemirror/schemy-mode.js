@@ -23,7 +23,7 @@
 
 		const keywords = makeKeywords(
 			'\' ` , @ . define λ lambda begin apply set! ' +
-			'let let* letrec letrec* ' +
+			'let let* letrec letrec* do ' +
 			'and or if when unless cond case else ' +
 			'display newline format ' +
 			'quote quasiquote ' +
