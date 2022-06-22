@@ -17,10 +17,10 @@
     "url": "https://popovmp.github.io/schemy/"
   },
   "devDependencies": {
-    "@types/node": "^16.11.1",
+    "@types/node": "^16.11.41",
     "@popovmp/mocha-tiny": "^2.2.0",
     "node-localstorage": "^2.2.1",
-    "typescript": "^4.4.4",
+    "typescript": "^4.7.4",
     "xmlhttprequest": "^1.8.0"
   },
   "license": "MIT",
