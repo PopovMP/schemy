@@ -219,8 +219,8 @@ const examplesList = [
 	},
 
     {
-        name: "Y combinator - factorial",
-        code: `;; Y combinator - factorial
+        name: "Y Combinator - Factorial",
+        code: `;; Y Combinator - Factorial
 
 (((λ (f)
      (λ (n)
@@ -231,6 +231,40 @@ const examplesList = [
             1
             (* n ((f f) (- n 1))) )))) 5)
 `   },
+
+    {
+        name: "Y Combinator - Fibonacci",
+        code: `;; Y Combinator - Fibonacci
+
+(define (fibo n)
+    (((((λ (f)
+           (λ (n)
+              (λ (prev)
+                 (λ (curr)
+                    ((((f f) n) prev) curr)))))
+        (λ (f)
+           (λ (n)
+              (λ (prev)
+                 (λ (curr)
+                    (if (= n 0)
+                        curr
+                        ((((f f) (- n 1)) curr) (+ prev curr))))))))
+       n) 0) 1))
+
+((((λ (f)
+      (λ (n)
+         (λ (i)
+            (((f f) n) i))))
+   (λ (f)
+      (λ (n)
+         (λ (i)
+            (begin
+                (format #t "Fibonacci ~S => ~S\n" i (fibo i))
+                (if (< i n)
+                    (((f f) n) (+ i 1))))))))
+  10) 1)
+`
+    },
 
     {
         name: "Schemy interprets Schemy",
