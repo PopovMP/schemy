@@ -259,7 +259,7 @@ const examplesList = [
       (λ (n)
          (λ (i)
             (begin
-                (format #t "Fibonacci ~S => ~S\n" i (fibo i))
+                (format #t "Fibonacci ~S => ~S\\n" i (fibo i))
                 (if (< i n)
                     (((f f) n) (+ i 1))))))))
   10) 1)
