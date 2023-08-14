@@ -90,14 +90,14 @@ const examplesList = [
 (define (show x)
     (if (number? x)
         (cond
-            [(< x  10) (display "  ") (display x) (display  " ")]
-            [(< x 100) (display  " ") (display x) (display  " ")]
-            [#t                       (display x) (display  " ")])
+            [(< x  10) (display "  ") (display x) (display " ")]
+            [(< x 100) (display  " ") (display x) (display " ")]
+            [#t                       (display x) (display " ")])
         (begin
             (display x)
             (if (eq? x "FizzBuzz")
                 (newline)
-                (display  " ")))))
+                (display " ")))))
 
 (define (loop n max)
     (when (<= n max)
@@ -105,7 +105,6 @@ const examplesList = [
           (loop (+ n 1) max)))
 
 (loop  1 120)
-
 `
     },
 
