@@ -42,6 +42,31 @@ const examplesList = [
 `
     },
 
+    {
+        name: "Quick Sort algorythm",
+        code: `;; Quick Sort
+
+(define (quick-sort arr)
+    (if (pair? arr)
+		(letrec
+	        ([loop (lambda (pivot arr left right)
+                (if (pair? arr)
+                    (loop pivot
+                          (cdr arr)
+                          (if (<= (car arr) pivot)
+                              (cons (car arr) left)
+                              left)
+                          (if (> (car arr) pivot)
+                              (cons (car arr) right)
+                              right))
+                    (append (quick-sort left)
+                            (cons pivot (quick-sort right)))))])
+            (loop (car arr) (cdr arr) (list) (list)))
+        arr))
+
+(display (quick-sort (list 7 3 5 8 2 1 9 6 4 0)))
+`
+    },
 	{
 		name: "100 Doors",
 		code: `;; 100 Doors
