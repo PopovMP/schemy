@@ -5,20 +5,19 @@ const examplesList = [
         name: "Find the maximum of a list",
         code: `;; Find the maximum of a list recursively
 
-(define (max m n)
-    (if (> m n) m n))
-
 (define (list-max lst)
-    (define (loop rest acc)
-        (if (pair? rest)
-            (loop (cdr rest)
-                  (max (car rest) acc))
-            acc))
+    (letrec
+        ([max  (lambda (m n)
+    	           (if (> m n) m n))]
+         [loop (lambda (rest acc)
+                   (if (pair? rest)
+                       (loop (cdr rest)
+                             (max (car rest) acc))
+                       acc))])
 
-    (loop lst (car lst)))
+    	(loop lst (car lst))))
 
-(define lst (list 2 5 1))
-(display (list-max lst))
+(display (list-max (list 2 5 8 1)))
 `
     },
 
@@ -27,15 +26,16 @@ const examplesList = [
         code: `;; Eliminate consecutive duplicates
 
 (define (eliminate-duplicates lst)
-    (define (loop rest acc)
-        (if (pair? rest)
-            (if (eq? (car rest) (car acc))
-                (loop (cdr rest) acc)
-                (loop (cdr rest)
-                      (cons (car rest) acc)))
-            (reverse acc)))
-    (loop lst
-          (list (car lst))))
+    (letrec
+        ([loop (lambda (rest acc)
+                   (if (pair? rest)
+                       (loop (cdr rest)
+                             (if (eq? (car rest) (car acc))
+                                 acc
+                                 (cons (car rest) acc)))
+                       (reverse acc)))])
+        (loop lst
+            (list (car lst)))))
 
 (define lst (list 1 1 2 3 4 5 5 6 7 8 8 8 9 9))
 (format #t "~S\\n" (eliminate-duplicates lst))
@@ -43,7 +43,7 @@ const examplesList = [
     },
 
     {
-        name: "Quick Sort algorythm",
+        name: "Quick Sort algorithm",
         code: `;; Quick Sort
 
 (define (quick-sort arr)
