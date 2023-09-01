@@ -48,8 +48,8 @@ const examplesList = [
 
 (define (quick-sort arr)
     (if (pair? arr)
-		(letrec
-	        ([loop (lambda (pivot arr left right)
+        (letrec
+            ([loop (lambda (pivot arr left right)
                 (if (pair? arr)
                     (loop pivot
                           (cdr arr)
