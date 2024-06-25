@@ -5,7 +5,7 @@ class Env
 		if (value === undefined)
 			throw `Error: Cannot set unspecified value to identifier: ${symbol}.`
 
-		for (let i = env.length - 1; i > -1; i--) {
+		for (let i: number = env.length - 1; i > -1; i--) {
 			const cellKey = env[i][0]
 
 			if (cellKey === '#scope')
@@ -23,10 +23,8 @@ class Env
 		if (value === undefined)
 			throw `Error: Cannot set unspecified value to identifier: ${symbol}.`
 
-		for (let i = env.length - 1; i > -1; i--) {
-			const cellKey = env[i][0]
-
-			if (cellKey === symbol) {
+		for (let i: number = env.length - 1; i > -1; --i) {
+			if (env[i][0] === symbol) {
 				env[i][1] = value
 				env[i][2] = modifier
 				return
@@ -38,7 +36,7 @@ class Env
 
 	public static lookup(symbol: string, env: any[], libs: any[]): any
 	{
-		for (let i = env.length - 1; i > -1; i--) {
+		for (let i: number = env.length - 1; i > -1; i--) {
 			if (symbol === env[i][0]) {
 				const val: any = env[i][1]
 
@@ -49,25 +47,22 @@ class Env
 			}
 		}
 
-		for (const lib of libs) {
+		for (const lib of libs)
 			if (lib.builtinHash[symbol])
 				return symbol
-		}
 
 		throw `Error: Unbound identifier: ${symbol}`
 	}
 
 	public static has(symbol: string, env: any[], libs: any[]): boolean
 	{
-		for (let i = env.length - 1; i > -1; i--) {
+		for (let i: number = env.length - 1; i > -1; i--)
 			if (symbol === env[i][0])
 				return true
-		}
 
-		for (const lib of libs) {
+		for (const lib of libs)
 			if (lib.builtinHash[symbol])
 				return true
-		}
 
 		return false
 	}
@@ -75,8 +70,8 @@ class Env
 	public static clear(tag: string, env: any[]): void
 	{
 		let cell: [string, any]
-		do {
+		do
 			cell = env.pop()
-		} while (cell[0] !== tag)
+		while (cell[0] !== tag)
 	}
 }

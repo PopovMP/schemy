@@ -3,32 +3,36 @@ class Interpreter
 	private isDebug: boolean
 	private readonly libs: ILib[]
 	private readonly specialForms: Record<string, (expr: any[], env: any[]) => any> = {
-		'and'       : this.evalAnd,
-		'apply'     : this.evalApply,
-		'begin'     : this.evalBegin,
-		'case'      : this.evalCase,
-		'cond'      : this.evalCond,
-		'debug'     : this.evalDebug,
-		'define'    : this.evalDefine,
-		'display'   : this.evalDisplay,
-		'do'        : this.evalDo,
-		'eval'      : this.evalEval,
-		'format'    : this.evalFormat,
-		'if'        : this.evalIf,
-		'lambda'    : this.evalLambda,
-		'let'       : this.evalLet,
-		'let*'      : this.evalLet,
-		'letrec'    : this.evalLet,
-		'letrec*'   : this.evalLet,
-		'newline'   : this.evalNewline,
-		'or'        : this.evalOr,
-		'parse'     : this.evalParse,
-		'quasiquote': this.evalQuasiquote,
-		'quote'     : this.evalQuote,
-		'raise'     : this.evalRaise,
-		'set!'      : this.evalSet,
-		'unless'    : this.evalUnless,
-		'when'      : this.evalWhen,
+		'and'          : this.evalAnd,
+		'apply'        : this.evalApply,
+		'begin'        : this.evalBegin,
+		'case'         : this.evalCase,
+		'cond'         : this.evalCond,
+		'debug'        : this.evalDebug,
+		'define'       : this.evalDefine,
+		'define-values': this.evalDefineValues,
+		'display'      : this.evalDisplay,
+		'do'           : this.evalDo,
+		'eval'         : this.evalEval,
+		'format'       : this.evalFormat,
+		'if'           : this.evalIf,
+		'lambda'       : this.evalLambda,
+		'let'          : this.evalLet,
+		'let*'         : this.evalLet,
+		'let*-values'  : this.evalLet,
+		'let-values'   : this.evalLet,
+		'letrec'       : this.evalLet,
+		'letrec*'      : this.evalLet,
+		'newline'      : this.evalNewline,
+		'or'           : this.evalOr,
+		'parse'        : this.evalParse,
+		'quasiquote'   : this.evalQuasiquote,
+		'quote'        : this.evalQuote,
+		'raise'        : this.evalRaise,
+		'set!'         : this.evalSet,
+		'unless'       : this.evalUnless,
+		'values'       : this.evalValues,
+		'when'         : this.evalWhen,
 	}
 
 	public readonly builtinHash: Record<string, boolean> = {}
@@ -79,9 +83,9 @@ class Interpreter
 	{
 		// Types
 		switch (typeof expr) {
-			case 'number'    :
-			case 'boolean'   :
-			case 'undefined' :
+			case 'number'   :
+			case 'boolean'  :
+			case 'undefined':
 				return expr
 			case 'string' :
 				return Env.lookup(expr, env, this.libs)
@@ -102,10 +106,9 @@ class Interpreter
 			if (this.builtinHash[form])
 				return this.specialForms[form].call(this, expr, env)
 
-			for (const lib of this.libs) {
-				if (lib.builtinHash[form])
-					return lib.libEvalExpr(expr, env)
-			}
+			for (let i: number = 0; i < this.libs.length; ++i)
+				if (this.libs[i].builtinHash[form])
+					return this.libs[i].libEvalExpr(expr, env)
 		}
 
 		// User proc
@@ -117,9 +120,9 @@ class Interpreter
 		const optionalCount: number = argTypes.filter(Array.isArray).length
 		this.assertArity(expr, argTypes.length, optionalCount)
 
-		return argTypes.map((argType: string | [string, any], index: number) => {
-			const isRequired = !Array.isArray(argType)
-			const arg: any   = isRequired || index + 1 < expr.length
+		return argTypes.map((argType: string | [string, any], index: number): any => {
+			const isRequired: boolean = !Array.isArray(argType)
+			const arg: any = isRequired || index + 1 < expr.length
 				? this.evalExpr(expr[index + 1], env)
 				: argTypes[index][1]
 
@@ -167,9 +170,9 @@ class Interpreter
 	// ((lambda params expr+) arg*)
 	private evalApplication(expr: any[], env: any[]): any
 	{
-		const proc: string | any[]    = expr[0]
+		const proc   : string | any[] = expr[0]
 		const isNamed: boolean        = typeof proc === 'string'
-		const procId: string          = isNamed ? proc as string : proc[0] === 'lambda' ? 'lambda' : 'expression'
+		const procId : string         = isNamed ? proc as string : proc[0] === 'lambda' ? 'lambda' : 'expression'
 		const closure: any[] | string = isNamed ? Env.lookup(proc as string, env, this.libs) : this.evalExpr(proc, env)
 
 		if (typeof closure === 'string' && Env.has(closure, env, this.libs))
@@ -185,8 +188,8 @@ class Interpreter
 				: this.mapExprList(expr.slice(1), env)
 
 		// (closure params body env)
-		const params: any        = closure[1]
-		const body: any[]        = closure[2]
+		const params    : any    = closure[1]
+		const body      : any[]  = closure[2]
 		const closureEnv: any[]  = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]])
 		const scopeStart: number = closureEnv.length - 1
 
@@ -196,8 +199,8 @@ class Interpreter
 
 		if (paramsCount >= 0) {
 			// Bind args to params
-
 			const dotIndex: number = params.indexOf('.')
+
 			if (dotIndex >= 0) {
 				if (dotIndex === 0)
 					throw `Error: Unexpected dot (.) as a first param in ${procId}.`
@@ -265,6 +268,14 @@ class Interpreter
 		}
 	}
 
+	// (define-values  (v1 v2 ...) (proc-that-produces-values))
+	private evalDefineValues(expr: any[], env: any[]): void
+	{
+		const values: any[] = this.evalExpr(expr[2], env)
+		for (let i: number = 0; i < expr[1].length; ++i)
+			Env.add(expr[1][i], values[i], 'define-values', env)
+	}
+
 	// (set! name expr) ; Variable assignment
 	private evalSet(expr: any[], env: any[]): void
 	{
@@ -316,6 +327,7 @@ class Interpreter
 	}
 
 	// (let ([name value]+) expr+)
+	// (let-values ([(name+) (value+)]+) expr+)
 	private evalLet(expr: any[], env: any[]): any[]
 	{
 		const proc: string = expr[0]
@@ -332,7 +344,12 @@ class Interpreter
 		env.push(['#scope', proc])
 		const scopeStart: number = env.length - 1
 
-		this.bindLetVariables(proc, expr[1], env)
+		if (proc === 'let-values')
+			this.bindLetValues(expr[1], env)
+		else if (proc === 'let*-values')
+			this.bindLetStarValues(expr[1], env)
+		else
+			this.bindLetVariables(proc, expr[1], env)
 
 		const res: any = expr.length === 3
 			? this.evalExpr(expr[2], env)
@@ -352,10 +369,10 @@ class Interpreter
 		if (expr.length < 4)
 			throw "Error: Improper named 'let' syntax. Missing body."
 
-		const name   : any[] = expr[1]
-		const vars   : any[] = expr[2].map( (binding: [string, any]): string => binding[0] )
-		const values : any[] = expr[2].map( (binding: [string, any]): any    => binding[1] )
-		const body   : any[] = expr.slice(3)
+		const name  : any[] = expr[1]
+		const vars  : any[] = expr[2].map( (binding: [string, any]): string => binding[0] )
+		const values: any[] = expr[2].map( (binding: [string, any]): any    => binding[1] )
+		const body  : any[] = expr.slice(3)
 
 		const begin = ['begin',
 			['define', name, ['lambda', [...vars], ...body]],
@@ -403,6 +420,28 @@ class Interpreter
 
 				break
 			}
+		}
+	}
+
+	// (let-values ([(name+) (value+)]+) expr+)
+	private bindLetValues(bindings: [string[], any[]][], env: any[]): void {
+		for (let i: number = 0; i < bindings.length; ++i) {
+			const bindLine: [string[], any[]] = bindings[i]
+			const formals : string[]          = bindLine[0];
+			const values  : any[]             = this.evalExpr(bindLine[1], env)
+			for (let i: number = 0; i < formals.length; ++i)
+				Env.add(formals[i], values[i], 'let-values', env)
+		}
+	}
+
+	// (let*-values ([(name+) (value+)]+) expr+)
+	private bindLetStarValues(bindings: [string[], any[]][], env: any[]): void {
+		for (let i: number = 0; i < bindings.length; ++i) {
+			const bindLine: [string[], any[]] = bindings[i]
+			const formals : string[]          = bindLine[0];
+			const values  : any[]             = this.evalExpr(bindLine[1], env)
+			for (let i: number = 0; i < formals.length; ++i)
+				Env.add(formals[i], values[i], 'let*-values', env)
 		}
 	}
 
@@ -516,6 +555,12 @@ class Interpreter
 			this.evalExprList(expr.slice(2), env)
 
 		Env.clear('#scope', env)
+	}
+
+	// (values expr1 expr2 ...)
+	private evalValues(expr: any[], env: any[]): any
+	{
+		return this.mapExprList(expr.slice(1), env);
 	}
 
 	// (when test-expr
@@ -671,9 +716,9 @@ class Interpreter
 	private evalDebug(_expr: any[], env: any): void
 	{
 		this.isDebug = true
-		const maxLen = 500
-
+		const maxLen     : number   = 500
 		const envDumpList: string[] = []
+
 		for (let i: number = Math.min(env.length - 1, 20); i > -1; i--) {
 			const envText : string = Printer.stringify(env[i][1])
 			const textLine: string = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText
@@ -692,7 +737,7 @@ class Interpreter
 	// (parse src)
 	private evalParse(expr: any[], env: any[]): any[]
 	{
-		const [scr] = <[string]>this.evalArgs(['string'], expr, env)
+		const [scr]: [string] = <[string]>this.evalArgs(['string'], expr, env)
 
 		return new Parser().parse(scr)
 	}
@@ -700,7 +745,7 @@ class Interpreter
 	// (eval src)
 	private evalEval(expr: any[], env: any[]): any[]
 	{
-		const [obj] = <[any]>this.evalArgs(['any'], expr, env)
+		const [obj]: [any] = <[any]>this.evalArgs(['any'], expr, env)
 
 		return this.evalCodeTree(obj, this.options)
 	}
@@ -712,7 +757,7 @@ class Interpreter
 
 	private assertArity(expr: any[], argsCount: number, optionalCount: number): void
 	{
-		const argText = (count: number) => count === 1 ? '1 argument' : count + ' arguments'
+		const argText = (count: number): string => count === 1 ? '1 argument' : count + ' arguments'
 
 		if (optionalCount === 0 && expr.length !== argsCount + 1)
 			throw `Error: '${expr[0]}' requires ${argText(argsCount)}. Given: ${argText(expr.length - 1)}`
@@ -720,7 +765,7 @@ class Interpreter
 		if (optionalCount !== 0 &&
 			(expr.length - 1 < argsCount - optionalCount || expr.length - 1 > argsCount)) {
 			throw `Error: '${expr[0]}' requires from ${argText(argsCount - optionalCount)} to ${argText(argsCount)}.` +
-			` Given: ${argText(expr.length - 1)}`
+					` Given: ${argText(expr.length - 1)}`
 		}
 	}
 
@@ -736,7 +781,7 @@ class Interpreter
 		const argText  : string = Printer.stringify(arg)
 
 		return argText.length > maxLength
-			? argText.substring(0, maxLength) + '...'
-			: argText
+		       ? argText.substring(0, maxLength) + '...'
+		       : argText
 	}
 }

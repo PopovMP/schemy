@@ -15,9 +15,8 @@ class Env {
     static set(symbol, value, modifier, env) {
         if (value === undefined)
             throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
-        for (let i = env.length - 1; i > -1; i--) {
-            const cellKey = env[i][0];
-            if (cellKey === symbol) {
+        for (let i = env.length - 1; i > -1; --i) {
+            if (env[i][0] === symbol) {
                 env[i][1] = value;
                 env[i][2] = modifier;
                 return;
@@ -34,28 +33,25 @@ class Env {
                 return val;
             }
         }
-        for (const lib of libs) {
+        for (const lib of libs)
             if (lib.builtinHash[symbol])
                 return symbol;
-        }
         throw `Error: Unbound identifier: ${symbol}`;
     }
     static has(symbol, env, libs) {
-        for (let i = env.length - 1; i > -1; i--) {
+        for (let i = env.length - 1; i > -1; i--)
             if (symbol === env[i][0])
                 return true;
-        }
-        for (const lib of libs) {
+        for (const lib of libs)
             if (lib.builtinHash[symbol])
                 return true;
-        }
         return false;
     }
     static clear(tag, env) {
         let cell;
-        do {
+        do
             cell = env.pop();
-        } while (cell[0] !== tag);
+        while (cell[0] !== tag);
     }
 }
 class Interpreter {
@@ -69,6 +65,7 @@ class Interpreter {
         'cond': this.evalCond,
         'debug': this.evalDebug,
         'define': this.evalDefine,
+        'define-values': this.evalDefineValues,
         'display': this.evalDisplay,
         'do': this.evalDo,
         'eval': this.evalEval,
@@ -77,6 +74,8 @@ class Interpreter {
         'lambda': this.evalLambda,
         'let': this.evalLet,
         'let*': this.evalLet,
+        'let*-values': this.evalLet,
+        'let-values': this.evalLet,
         'letrec': this.evalLet,
         'letrec*': this.evalLet,
         'newline': this.evalNewline,
@@ -87,6 +86,7 @@ class Interpreter {
         'raise': this.evalRaise,
         'set!': this.evalSet,
         'unless': this.evalUnless,
+        'values': this.evalValues,
         'when': this.evalWhen,
     };
     builtinHash = {};
@@ -137,10 +137,9 @@ class Interpreter {
         if (typeof form === 'string') {
             if (this.builtinHash[form])
                 return this.specialForms[form].call(this, expr, env);
-            for (const lib of this.libs) {
-                if (lib.builtinHash[form])
-                    return lib.libEvalExpr(expr, env);
-            }
+            for (let i = 0; i < this.libs.length; ++i)
+                if (this.libs[i].builtinHash[form])
+                    return this.libs[i].libEvalExpr(expr, env);
         }
         return this.evalApplication(expr, env);
     }
@@ -254,6 +253,11 @@ class Interpreter {
             Env.add(name, value, 'define', env);
         }
     }
+    evalDefineValues(expr, env) {
+        const values = this.evalExpr(expr[2], env);
+        for (let i = 0; i < expr[1].length; ++i)
+            Env.add(expr[1][i], values[i], 'define-values', env);
+    }
     evalSet(expr, env) {
         const name = expr[1];
         const value = this.evalExpr(expr[2], env);
@@ -293,7 +297,12 @@ class Interpreter {
             throw `Error: Improper '${proc}' bindings. Given: ${Printer.stringify(expr[1])}`;
         env.push(['#scope', proc]);
         const scopeStart = env.length - 1;
-        this.bindLetVariables(proc, expr[1], env);
+        if (proc === 'let-values')
+            this.bindLetValues(expr[1], env);
+        else if (proc === 'let*-values')
+            this.bindLetStarValues(expr[1], env);
+        else
+            this.bindLetVariables(proc, expr[1], env);
         const res = expr.length === 3
             ? this.evalExpr(expr[2], env)
             : this.evalExprList(expr.slice(2), env);
@@ -343,6 +352,24 @@ class Interpreter {
                     Env.set(bindings[i][0], this.evalExpr(bindings[i][1], env), form, env);
                 break;
             }
+        }
+    }
+    bindLetValues(bindings, env) {
+        for (let i = 0; i < bindings.length; ++i) {
+            const bindLine = bindings[i];
+            const formals = bindLine[0];
+            const values = this.evalExpr(bindLine[1], env);
+            for (let i = 0; i < formals.length; ++i)
+                Env.add(formals[i], values[i], 'let-values', env);
+        }
+    }
+    bindLetStarValues(bindings, env) {
+        for (let i = 0; i < bindings.length; ++i) {
+            const bindLine = bindings[i];
+            const formals = bindLine[0];
+            const values = this.evalExpr(bindLine[1], env);
+            for (let i = 0; i < formals.length; ++i)
+                Env.add(formals[i], values[i], 'let*-values', env);
         }
     }
     evalDo(expr, env) {
@@ -416,6 +443,9 @@ class Interpreter {
         else
             this.evalExprList(expr.slice(2), env);
         Env.clear('#scope', env);
+    }
+    evalValues(expr, env) {
+        return this.mapExprList(expr.slice(1), env);
     }
     evalWhen(expr, env) {
         if (expr.length === 1)
