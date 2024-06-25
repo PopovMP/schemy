@@ -3,36 +3,32 @@ class Interpreter
 	private isDebug: boolean
 	private readonly libs: ILib[]
 	private readonly specialForms: Record<string, (expr: any[], env: any[]) => any> = {
-		'apply' : this.evalApply,
-		'begin' : this.evalBegin,
-		'define': this.evalDefine,
-		'lambda': this.evalLambda,
-		'set!'  : this.evalSet,
-
-		'let'    : this.evalLet,
-		'let*'   : this.evalLet,
-		'letrec' : this.evalLet,
-		'do'     : this.evalDo,
-
-		'and'   : this.evalAnd,
-		'or'    : this.evalOr,
-		'if'    : this.evalIf,
-		'when'  : this.evalWhen,
-		'unless': this.evalUnless,
-		'cond'  : this.evalCond,
-		'case'  : this.evalCase,
-
-		'display': this.evalDisplay,
-		'newline': this.evalNewline,
-		'format' : this.evalFormat,
-
-		'quote'     : this.evalQuote,
+		'and'       : this.evalAnd,
+		'apply'     : this.evalApply,
+		'begin'     : this.evalBegin,
+		'case'      : this.evalCase,
+		'cond'      : this.evalCond,
+		'debug'     : this.evalDebug,
+		'define'    : this.evalDefine,
+		'display'   : this.evalDisplay,
+		'do'        : this.evalDo,
+		'eval'      : this.evalEval,
+		'format'    : this.evalFormat,
+		'if'        : this.evalIf,
+		'lambda'    : this.evalLambda,
+		'let'       : this.evalLet,
+		'let*'      : this.evalLet,
+		'letrec'    : this.evalLet,
+		'letrec*'   : this.evalLet,
+		'newline'   : this.evalNewline,
+		'or'        : this.evalOr,
+		'parse'     : this.evalParse,
 		'quasiquote': this.evalQuasiquote,
-
-		'parse': this.evalParse,
-		'eval' : this.evalEval,
-		'debug': this.evalDebug,
-		'raise': this.evalRaise,
+		'quote'     : this.evalQuote,
+		'raise'     : this.evalRaise,
+		'set!'      : this.evalSet,
+		'unless'    : this.evalUnless,
+		'when'      : this.evalWhen,
 	}
 
 	public readonly builtinHash: Record<string, boolean> = {}
@@ -356,10 +352,10 @@ class Interpreter
 		if (expr.length < 4)
 			throw "Error: Improper named 'let' syntax. Missing body."
 
-		const name   = expr[1]
-		const vars   = expr[2].map( (binding: [string, any]) => binding[0] )
-		const values = expr[2].map( (binding: [string, any]) => binding[1] )
-		const body   = expr.slice(3)
+		const name   : any[] = expr[1]
+		const vars   : any[] = expr[2].map( (binding: [string, any]): string => binding[0] )
+		const values : any[] = expr[2].map( (binding: [string, any]): any    => binding[1] )
+		const body   : any[] = expr.slice(3)
 
 		const begin = ['begin',
 			['define', name, ['lambda', [...vars], ...body]],
@@ -371,29 +367,39 @@ class Interpreter
 	private bindLetVariables(form: string, bindings: [string, any][], env: any[]): void {
 		switch (form) {
 			case 'let': {
-				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
+				const values: any[] = bindings.map( (binding: [string, any]): any => this.evalExpr(binding[1], env) )
 
-				for (let i = 0; i < bindings.length; i++)
+				for (let i: number = 0; i < bindings.length; ++i)
 					Env.add(bindings[i][0], values[i], form, env)
 
 				break
 			}
 
 			case 'let*': {
-				for (const binding of bindings)
-					Env.add(binding[0], this.evalExpr(binding[1], env), form, env)
+				for (let i: number = 0; i < bindings.length; ++i)
+					Env.add(bindings[i][0], this.evalExpr(bindings[i][1], env), form, env)
 
 				break
 			}
 
 			case 'letrec': {
-				for (let i = 0; i < bindings.length; i++)
+				for (let i: number = 0; i < bindings.length; ++i)
 					Env.add(bindings[i][0], null, form, env)
 
-				const values: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
+				const values: any[] = bindings.map( (binding: [string, any]): any => this.evalExpr(binding[1], env) )
 
-				for (let i = 0; i < bindings.length; i++)
+				for (let i: number = 0; i < bindings.length; ++i)
 					Env.set(bindings[i][0], values[i], form, env)
+
+				break
+			}
+
+			case 'letrec*': {
+				for (let i: number = 0; i < bindings.length; ++i)
+					Env.add(bindings[i][0], null, form, env)
+
+				for (let i: number = 0; i < bindings.length; ++i)
+					Env.set(bindings[i][0], this.evalExpr(bindings[i][1], env), form, env)
 
 				break
 			}
@@ -408,8 +414,8 @@ class Interpreter
 		const bindings: [string, any, any][] = expr[1]
 
 		// Eval inits
-		const inits: any[] = bindings.map( (binding) => this.evalExpr(binding[1], env) )
-		for (let i = 0; i < bindings.length; i++)
+		const inits: any[] = bindings.map( (binding: [string, any, any]): any => this.evalExpr(binding[1], env) )
+		for (let i: number = 0; i < bindings.length; ++i)
 			Env.add(bindings[i][0], inits[i], 'init', env)
 
 		while(! this.isTrue( this.evalExpr(expr[2][0], env) )) {
@@ -652,8 +658,8 @@ class Interpreter
 		const args   : string[] = form.slice(typeof form[0] === 'string' ? 1 : 2).map(Printer.stringify)
 
 		// TODO implement different placeholders
-		let index = 0
-		const text: string = pattern.replace(/~./g, (_) => args[index++])
+		let index: number = 0
+		const text: string = pattern.replace(/~./g, (_: string): string => args[index++])
 
 		if (!isPrint)
 			return text
@@ -668,9 +674,9 @@ class Interpreter
 		const maxLen = 500
 
 		const envDumpList: string[] = []
-		for (let i = Math.min(env.length - 1, 20); i > -1; i--) {
-			const envText  = Printer.stringify(env[i][1])
-			const textLine = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText
+		for (let i: number = Math.min(env.length - 1, 20); i > -1; i--) {
+			const envText : string = Printer.stringify(env[i][1])
+			const textLine: string = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText
 			envDumpList.push(`${env[i][0]} = ${textLine}`)
 		}
 
@@ -726,8 +732,8 @@ class Interpreter
 
 	private argToStr(arg: any): string
 	{
-		const maxLength = 25
-		const argText   = Printer.stringify(arg)
+		const maxLength: number = 25
+		const argText  : string = Printer.stringify(arg)
 
 		return argText.length > maxLength
 			? argText.substring(0, maxLength) + '...'

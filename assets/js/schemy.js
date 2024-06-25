@@ -62,31 +62,32 @@ class Interpreter {
     isDebug;
     libs;
     specialForms = {
+        'and': this.evalAnd,
         'apply': this.evalApply,
         'begin': this.evalBegin,
+        'case': this.evalCase,
+        'cond': this.evalCond,
+        'debug': this.evalDebug,
         'define': this.evalDefine,
+        'display': this.evalDisplay,
+        'do': this.evalDo,
+        'eval': this.evalEval,
+        'format': this.evalFormat,
+        'if': this.evalIf,
         'lambda': this.evalLambda,
-        'set!': this.evalSet,
         'let': this.evalLet,
         'let*': this.evalLet,
         'letrec': this.evalLet,
-        'do': this.evalDo,
-        'and': this.evalAnd,
-        'or': this.evalOr,
-        'if': this.evalIf,
-        'when': this.evalWhen,
-        'unless': this.evalUnless,
-        'cond': this.evalCond,
-        'case': this.evalCase,
-        'display': this.evalDisplay,
+        'letrec*': this.evalLet,
         'newline': this.evalNewline,
-        'format': this.evalFormat,
-        'quote': this.evalQuote,
-        'quasiquote': this.evalQuasiquote,
+        'or': this.evalOr,
         'parse': this.evalParse,
-        'eval': this.evalEval,
-        'debug': this.evalDebug,
+        'quasiquote': this.evalQuasiquote,
+        'quote': this.evalQuote,
         'raise': this.evalRaise,
+        'set!': this.evalSet,
+        'unless': this.evalUnless,
+        'when': this.evalWhen,
     };
     builtinHash = {};
     options;
@@ -318,21 +319,28 @@ class Interpreter {
         switch (form) {
             case 'let': {
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
-                for (let i = 0; i < bindings.length; i++)
+                for (let i = 0; i < bindings.length; ++i)
                     Env.add(bindings[i][0], values[i], form, env);
                 break;
             }
             case 'let*': {
-                for (const binding of bindings)
-                    Env.add(binding[0], this.evalExpr(binding[1], env), form, env);
+                for (let i = 0; i < bindings.length; ++i)
+                    Env.add(bindings[i][0], this.evalExpr(bindings[i][1], env), form, env);
                 break;
             }
             case 'letrec': {
-                for (let i = 0; i < bindings.length; i++)
+                for (let i = 0; i < bindings.length; ++i)
                     Env.add(bindings[i][0], null, form, env);
                 const values = bindings.map((binding) => this.evalExpr(binding[1], env));
-                for (let i = 0; i < bindings.length; i++)
+                for (let i = 0; i < bindings.length; ++i)
                     Env.set(bindings[i][0], values[i], form, env);
+                break;
+            }
+            case 'letrec*': {
+                for (let i = 0; i < bindings.length; ++i)
+                    Env.add(bindings[i][0], null, form, env);
+                for (let i = 0; i < bindings.length; ++i)
+                    Env.set(bindings[i][0], this.evalExpr(bindings[i][1], env), form, env);
                 break;
             }
         }
@@ -341,7 +349,7 @@ class Interpreter {
         env.push(['#scope', 'do']);
         const bindings = expr[1];
         const inits = bindings.map((binding) => this.evalExpr(binding[1], env));
-        for (let i = 0; i < bindings.length; i++)
+        for (let i = 0; i < bindings.length; ++i)
             Env.add(bindings[i][0], inits[i], 'init', env);
         while (!this.isTrue(this.evalExpr(expr[2][0], env))) {
             if (expr.length === 4)

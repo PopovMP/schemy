@@ -87,6 +87,22 @@ describe('letrec', function () {
 	})
 })
 
+describe('letrec*', function () {
+	it('letrec* example', function () {
+		assert.strictEqual(schemy.evaluate(`
+			(letrec* ([p (lambda (x)
+                             (+ 1 (q (- x 1))))]
+                      [q (lambda (y)
+                             (if (zero? y)
+                                 0
+                                 (+ 1 (p (- y 1)))))]
+                      [x (p 5)]
+                      [y     x])
+                     y)
+		`), 5)
+	})
+});
+
 describe('named let', function () {
 	it('no bindings', function () {
 		assert.strictEqual(schemy.evaluate(`
