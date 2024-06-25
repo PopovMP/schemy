@@ -255,8 +255,12 @@ class Interpreter {
     }
     evalDefineValues(expr, env) {
         const values = this.evalExpr(expr[2], env);
+        if (values[0] !== 'values')
+            throw `Error: Multiple values required in 'define-values'`;
+        if (values.length - 1 !== expr[1].length)
+            throw `Error: Values count does not match. Required: ${expr[1].length}, got: ${values.length - 1}`;
         for (let i = 0; i < expr[1].length; ++i)
-            Env.add(expr[1][i], values[i], 'define-values', env);
+            Env.add(expr[1][i], values[i + 1], 'define-values', env);
     }
     evalSet(expr, env) {
         const name = expr[1];
@@ -359,8 +363,12 @@ class Interpreter {
             const bindLine = bindings[i];
             const formals = bindLine[0];
             const values = this.evalExpr(bindLine[1], env);
+            if (values[0] !== 'values')
+                throw `Error: Multiple values required in 'let-values'`;
+            if (values.length - 1 !== formals.length)
+                throw `Error: Values count does not match. Required: ${formals.length}, got: ${values.length - 1}`;
             for (let i = 0; i < formals.length; ++i)
-                Env.add(formals[i], values[i], 'let-values', env);
+                Env.add(formals[i], values[i + 1], 'let-values', env);
         }
     }
     bindLetStarValues(bindings, env) {
@@ -368,8 +376,12 @@ class Interpreter {
             const bindLine = bindings[i];
             const formals = bindLine[0];
             const values = this.evalExpr(bindLine[1], env);
+            if (values[0] !== 'values')
+                throw `Error: Multiple values required in 'let*-values'`;
+            if (values.length - 1 !== formals.length)
+                throw `Error: Values count does not match. Required: ${formals.length}, got: ${values.length - 1}`;
             for (let i = 0; i < formals.length; ++i)
-                Env.add(formals[i], values[i], 'let*-values', env);
+                Env.add(formals[i], values[i + 1], 'let*-values', env);
         }
     }
     evalDo(expr, env) {
@@ -445,7 +457,7 @@ class Interpreter {
         Env.clear('#scope', env);
     }
     evalValues(expr, env) {
-        return this.mapExprList(expr.slice(1), env);
+        return ['values', ...this.mapExprList(expr.slice(1), env)];
     }
     evalWhen(expr, env) {
         if (expr.length === 1)
