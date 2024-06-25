@@ -193,13 +193,15 @@ class Interpreter {
         const args = expr.length === 1
             ? []
             : expr.length === 2
-                ? [this.evalExpr(expr[1], env)]
+                ? Array.isArray(expr[1]) && expr[1][0] === 'values'
+                    ? this.evalExpr(expr[1], env).slice(1)
+                    : [this.evalExpr(expr[1], env)]
                 : this.mapExprList(expr.slice(1), env);
         const params = closure[1];
         const body = closure[2];
         const closureEnv = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]]);
         const scopeStart = closureEnv.length - 1;
-        const argsCount = expr.length - 1;
+        const argsCount = args.length;
         const paramsCount = Array.isArray(params) ? params.length : -1;
         if (paramsCount >= 0) {
             const dotIndex = params.indexOf('.');

@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("assert");
-const {describe, it} = require("@popovmp/mocha-tiny");
+const {describe, it} = require("node:test");
 const {Schemy, Parser} = require("../assets/js/schemy.js");
 
 const schemy = new Schemy();
