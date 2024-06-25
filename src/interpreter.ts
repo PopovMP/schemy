@@ -184,7 +184,9 @@ class Interpreter
 		const args: any[] = expr.length === 1
 			? []
 			: expr.length === 2
-				? [this.evalExpr(expr[1], env)]
+				? Array.isArray(expr[1]) && expr[1][0] === 'values'
+					? this.evalExpr(expr[1], env).slice(1)
+					: [this.evalExpr(expr[1], env)]
 				: this.mapExprList(expr.slice(1), env)
 
 		// (closure params body env)
@@ -194,7 +196,7 @@ class Interpreter
 		const scopeStart: number = closureEnv.length - 1
 
 		// Parameters binding
-		const argsCount: number   = expr.length - 1
+		const argsCount  : number   = args.length
 		const paramsCount: number = Array.isArray(params) ? params.length : -1
 
 		if (paramsCount >= 0) {
