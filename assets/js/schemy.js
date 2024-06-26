@@ -108,14 +108,14 @@ class Interpreter {
     }
     evalExprList(exprLst, env) {
         let res;
-        for (const expr of exprLst)
-            res = this.evalExpr(expr, env);
+        for (let i = 0; i < exprLst.length; ++i)
+            res = this.evalExpr(exprLst[i], env);
         return res;
     }
     mapExprList(exprLst, env) {
-        const res = [];
-        for (const expr of exprLst)
-            res.push(this.evalExpr(expr, env));
+        const res = new Array(exprLst.length);
+        for (let i = 0; i < exprLst.length; ++i)
+            res[i] = this.evalExpr(exprLst[i], env);
         return res;
     }
     evalExpr(expr, env) {
@@ -146,14 +146,16 @@ class Interpreter {
     evalArgs(argTypes, expr, env) {
         const optionalCount = argTypes.filter(Array.isArray).length;
         this.assertArity(expr, argTypes.length, optionalCount);
-        return argTypes.map((argType, index) => {
+        const args = new Array(argTypes.length);
+        for (let i = 0; i < argTypes.length; ++i) {
+            const argType = argTypes[i];
             const isRequired = !Array.isArray(argType);
-            const arg = isRequired || index + 1 < expr.length
-                ? this.evalExpr(expr[index + 1], env)
-                : argTypes[index][1];
-            this.assertArgType(expr[0], arg, (isRequired ? argType : argType[0]));
-            return arg;
-        });
+            args[i] = isRequired || i + 1 < expr.length
+                ? this.evalExpr(expr[i + 1], env)
+                : argTypes[i][1];
+            this.assertArgType(expr[0], args[i], (isRequired ? argType : argType[0]));
+        }
+        return args;
     }
     assertType(arg, argType) {
         switch (argType) {
@@ -190,11 +192,9 @@ class Interpreter {
             return this.evalExpr([this.evalExpr(closure, env), ...expr.slice(1)], env);
         if (!Array.isArray(closure) || closure[0] !== 'closure')
             throw `Error: Improper function application. Given: ${Printer.stringify(closure)}`;
-        const args = expr.length === 1
-            ? []
-            : expr.length === 2
-                ? [this.evalExpr(expr[1], env)]
-                : this.mapExprList(expr.slice(1), env);
+        const args = [];
+        for (let i = 1; i < expr.length; ++i)
+            args[i - 1] = this.evalExpr(expr[i], env);
         const params = closure[1];
         const body = closure[2];
         const closureEnv = closure[3].concat([['#scope', procId], ['#args', args], ['#name', procId]]);

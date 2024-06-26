@@ -63,18 +63,18 @@ class Interpreter
 	{
 		let res: any
 
-		for (const expr of exprLst)
-			res = this.evalExpr(expr, env)
+		for (let i: number = 0; i < exprLst.length; ++i)
+			res = this.evalExpr(exprLst[i], env)
 
 		return res
 	}
 
 	public mapExprList(exprLst: any[], env: any[]): any[]
 	{
-		const res: any[] = []
+		const res: any[] = new Array(exprLst.length)
 
-		for (const expr of exprLst)
-			res.push( this.evalExpr(expr, env) )
+		for (let i: number = 0; i < exprLst.length; ++i)
+			res[i] = this.evalExpr(exprLst[i], env)
 
 		return res
 	}
@@ -87,7 +87,7 @@ class Interpreter
 			case 'boolean'  :
 			case 'undefined':
 				return expr
-			case 'string' :
+			case 'string':
 				return Env.lookup(expr, env, this.libs)
 		}
 
@@ -120,16 +120,20 @@ class Interpreter
 		const optionalCount: number = argTypes.filter(Array.isArray).length
 		this.assertArity(expr, argTypes.length, optionalCount)
 
-		return argTypes.map((argType: string | [string, any], index: number): any => {
+		const args: any[] = new Array(argTypes.length)
+
+		for (let i: number = 0; i < argTypes.length; ++i) {
+			const argType   : string | [string, any] = argTypes[i]
 			const isRequired: boolean = !Array.isArray(argType)
-			const arg: any = isRequired || index + 1 < expr.length
-				? this.evalExpr(expr[index + 1], env)
-				: argTypes[index][1]
 
-			this.assertArgType(expr[0], arg, (isRequired ? argType : argType[0]) as string)
+			args[i] = isRequired || i + 1 < expr.length
+			                 ? this.evalExpr(expr[i + 1], env)
+			                 : argTypes[i][1]
 
-			return arg
-		})
+			this.assertArgType(expr[0], args[i], (isRequired ? argType : argType[0]) as string)
+		}
+
+		return args
 	}
 
 	public assertType(arg: any, argType: string): boolean
@@ -181,11 +185,9 @@ class Interpreter
 		if (!Array.isArray(closure) || closure[0] !== 'closure')
 			throw `Error: Improper function application. Given: ${Printer.stringify(closure)}`
 
-		const args: any[] = expr.length === 1
-			? []
-			: expr.length === 2
-				? [this.evalExpr(expr[1], env)]
-				: this.mapExprList(expr.slice(1), env)
+		const args: any[] = []
+		for (let i: number = 1; i < expr.length; ++i)
+			args[i - 1] = this.evalExpr(expr[i], env)
 
 		// (closure params body env)
 		const params    : any    = closure[1]
@@ -194,7 +196,7 @@ class Interpreter
 		const scopeStart: number = closureEnv.length - 1
 
 		// Parameters binding
-		const argsCount  : number   = args.length
+		const argsCount  : number = args.length
 		const paramsCount: number = Array.isArray(params) ? params.length : -1
 
 		if (paramsCount >= 0) {
@@ -644,7 +646,7 @@ class Interpreter
 			if (clause.length <= 1)
 				throw `Error: 'case' requires a clause with one or more expressions.`
 
-			const isMatch = datum === 'else' ||
+			const isMatch: boolean = datum === 'else' ||
 				datum.some((e: any | any[]) => e === key || (e[0] === 'string' && e[1] === key))
 
 			if (!isMatch)
