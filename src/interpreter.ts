@@ -184,9 +184,7 @@ class Interpreter
 		const args: any[] = expr.length === 1
 			? []
 			: expr.length === 2
-				? Array.isArray(expr[1]) && expr[1][0] === 'values'
-					? this.evalExpr(expr[1], env).slice(1)
-					: [this.evalExpr(expr[1], env)]
+				? [this.evalExpr(expr[1], env)]
 				: this.mapExprList(expr.slice(1), env)
 
 		// (closure params body env)
@@ -253,7 +251,13 @@ class Interpreter
 	// (define (name . p) expr+) ; Procedure definition - catch all args
 	private evalDefine(expr: any[], env: any[]): void
 	{
-		if ( Array.isArray(expr[1]) ) {
+		if (typeof expr[1] === 'string') {
+			// Define variable
+			const name : string = expr[1]
+			const value: any    = this.evalExpr(expr[2], env)
+			Env.add(name, value, 'define', env)
+		}
+		else {
 			// Define procedure
 			const name   : string = expr[1][0]
 			const params : any    = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1)
@@ -261,12 +265,6 @@ class Interpreter
 			const lambda : any[]  = ['lambda', params, ...body]
 			const closure: any    = this.evalExpr(lambda, env)
 			Env.add(name, closure, 'closure', env)
-		}
-		else {
-			// Define variable
-			const name : string = expr[1]
-			const value: any    = this.evalExpr(expr[2], env)
-			Env.add(name, value, 'define', env)
 		}
 	}
 

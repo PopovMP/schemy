@@ -193,9 +193,7 @@ class Interpreter {
         const args = expr.length === 1
             ? []
             : expr.length === 2
-                ? Array.isArray(expr[1]) && expr[1][0] === 'values'
-                    ? this.evalExpr(expr[1], env).slice(1)
-                    : [this.evalExpr(expr[1], env)]
+                ? [this.evalExpr(expr[1], env)]
                 : this.mapExprList(expr.slice(1), env);
         const params = closure[1];
         const body = closure[2];
@@ -241,18 +239,18 @@ class Interpreter {
         return res;
     }
     evalDefine(expr, env) {
-        if (Array.isArray(expr[1])) {
+        if (typeof expr[1] === 'string') {
+            const name = expr[1];
+            const value = this.evalExpr(expr[2], env);
+            Env.add(name, value, 'define', env);
+        }
+        else {
             const name = expr[1][0];
             const params = expr[1][1] === '.' ? expr[1][2] : expr[1].slice(1);
             const body = expr.slice(2);
             const lambda = ['lambda', params, ...body];
             const closure = this.evalExpr(lambda, env);
             Env.add(name, closure, 'closure', env);
-        }
-        else {
-            const name = expr[1];
-            const value = this.evalExpr(expr[2], env);
-            Env.add(name, value, 'define', env);
         }
     }
     evalDefineValues(expr, env) {
