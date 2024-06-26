@@ -7,7 +7,7 @@ class Parser {
 	private isTextNumber  = (tx: string): boolean => /^[-+]?\d+(?:\.\d+)*$/.test(tx)
 
 	public parse(codeText: string): any[] {
-		const fixedText = codeText
+		const fixedText :string = codeText
 			.replace(/λ/g, 'lambda')
 			.replace(/'\([ \t\r\n]*\)/g, '\'()')
 			.replace(/\(string[ \t\r\n]*\)/g, '""')
@@ -22,9 +22,8 @@ class Parser {
 		this.checkMatchingParens(codeList)
 
 		const abbrevResolved: any[] = this.expandAbbreviations(codeList, abbrevList)
-		const ilTree: any[]         = this.nest(abbrevResolved)
 
-		return ilTree
+		return this.nest(abbrevResolved)
 	}
 
 	private expandAbbreviations(codeList: any[], abbrevList: [string, string][]): any[] {
@@ -39,19 +38,18 @@ class Parser {
 	}
 
 	public tokenize(code: string): any[] {
-		const isInFile            = (i: number): boolean => i < code.length
-		const isInLine            = (i: number): boolean => code[i] !== '\n' && code[i] !== undefined
-		const isOpenRangeComment  = (i: number): boolean => code[i] + code[i + 1] === '#|'
-		const isCloseRangeComment = (i: number): boolean => code[i - 1] + code[i] === '|#'
+		const isInFile            = (i : number): boolean => i < code.length
+		const isInLine            = (i : number): boolean => code[i] !== '\n' && code[i] !== undefined
+		const isOpenRangeComment  = (i : number): boolean => code[i] + code[i + 1] === '#|'
+		const isCloseRangeComment = (i : number): boolean => code[i - 1] + code[i] === '|#'
 		const isStringChar        = (ch: string): boolean => ch === '"'
 
 		const output: any[] = []
 
 		const pushLexeme = (lexeme: string): void => {
-			if (lexeme === '')
-				return
+			if (lexeme === '') return
 
-			const value = this.isTextNumber(lexeme) ? Number(lexeme)
+			const value: string | number | boolean = this.isTextNumber(lexeme) ? Number(lexeme)
 								: lexeme === '#t' ? true
 								: lexeme === '#f' ? false
 								: lexeme
@@ -59,18 +57,18 @@ class Parser {
 			output.push(value)
 		}
 
-		for (let i = 0, lexeme = ''; i < code.length; i++) {
-			const ch = code[i]
+		for (let i: number = 0, lexeme: string = ''; i < code.length; ++i) {
+			const ch: string = code[i]
 
 			// Detect a string and bound it in (string str)
 			if (isStringChar(ch)) {
 				const chars: string[] = []
 
-				for (i++; isInFile(i); i++) {
+				for (++i; isInFile(i); ++i) {
 					if (isStringChar(code[i])) {
 						if (isStringChar(code[i + 1])) {
 							chars.push('"')
-							i++
+							++i
 							continue
 						}
 
@@ -86,17 +84,17 @@ class Parser {
 
 			// Eat line comment ; ...
 			if ( this.isLineComment(ch) ) {
-				do {
-					i++
-				} while (isInFile(i) && isInLine(i))
+				do
+					++i
+				while (isInFile(i) && isInLine(i))
 				continue
 			}
 
 			// Eat range comment #| ... |#
 			if ( isOpenRangeComment(i) ) {
-				do {
-					i++
-				} while (!isCloseRangeComment(i))
+				do
+					++i
+				while (!isCloseRangeComment(i))
 				continue
 			}
 
@@ -127,13 +125,13 @@ class Parser {
 	public expandSymbolAbbreviation(input: any[], abbrevChar: string, fullForm: string): any[] {
 		const output: any[] = []
 
-		for (let i = 0; i < input.length; i++) {
+		for (let i: number = 0; i < input.length; ++i) {
 			const curr: string = input[i]
 			const next: string = input[i + 1]
 
 			if (curr === abbrevChar && !this.isOpenParen(next) && next !== abbrevChar) {
 				output.push('(', fullForm, next, ')')
-				i++
+				++i
 			}
 			else {
 				output.push(curr)
@@ -159,10 +157,10 @@ class Parser {
 			output.push(curr)
 
 			if (flag && this.isOpenParen(curr))
-				paren++
+				++paren
 
 			if (flag && this.isCloseParen(curr))
-				paren--
+				--paren
 
 			if (flag && paren === 0) {
 				output.push(')')
@@ -200,45 +198,45 @@ class Parser {
 	}
 
 	public checkMatchingParens(codeList: any[]): void {
-		let curly  = 0
-		let square = 0
-		let round  = 0
+		let curly : number = 0
+		let square: number = 0
+		let round : number = 0
 
-		for (let i: number = 0; i < codeList.length; i++) {
+		for (let i: number = 0; i < codeList.length; ++i) {
 			// Eat string
 			if (codeList[i - 1] === '(' && codeList[i] === 'string')
 				i += 2
 
 			switch (codeList[i]) {
 				case '(':
-					round++
+					++round
 					break
 				case '[':
-					square++
+					++square
 					break
 				case '{':
-					curly++
+					++curly
 					break
 				case ')':
-					round--
+					--round
 					break
 				case ']':
-					square--
+					--square
 					break
 				case '}':
-					curly--
+					--curly
 					break
 			}
 		}
 
 		if (curly !== 0)
-			throw 'Unmatching curly braces!'
+			throw 'Non-matching curly braces!'
 
 		if (square !== 0)
-			throw 'Unmatching square braces!'
+			throw 'Non-matching square braces!'
 
 		if (round !== 0)
-			throw 'Unmatching round braces!'
+			throw 'Non-matching round braces!'
 	}
 }
 

@@ -2,9 +2,10 @@ class Printer {
 	public static stringify(input: any[] | any): string {
 		const texts: string[] = []
 		const isOpenParen     = (c: string) => ['{', '[', '('].includes(c)
-		const isQuoteAbbrev   = (c: string) => c === '\''
-		const lastChar        = () => texts[texts.length - 1][texts[texts.length - 1].length - 1]
-		const space           = () => texts[texts.length - 1].length === 0 || isOpenParen(lastChar()) || isQuoteAbbrev(lastChar()) ? '' : ' '
+		const isQuoteAbbrev   = (c: string): boolean => c === '\''
+		const lastChar        = (): string => texts[texts.length - 1][texts[texts.length - 1].length - 1]
+		const space           = (): string => texts[texts.length - 1].length === 0 ||
+		                                      isOpenParen(lastChar()) || isQuoteAbbrev(lastChar()) ? '' : ' '
 
 		function printClosure(closure: any[]): void {
 			texts.push('lambda (')
@@ -62,7 +63,7 @@ class Printer {
 			loop(lst.slice(1))
 		}
 
-		const type = typeof input
+		const type: string = typeof input
 
 		if (input === null)
 			return `'()`

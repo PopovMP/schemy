@@ -9,7 +9,7 @@ class Schemy
 		const interpreter: Interpreter = new Interpreter()
 
 		try {
-			const ilCode = parser.parse(codeText)
+			const ilCode: any[] = parser.parse(codeText)
 
 			return interpreter.evalCodeTree(ilCode, options, callback)
 		}

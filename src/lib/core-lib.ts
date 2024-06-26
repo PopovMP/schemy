@@ -41,9 +41,8 @@ class CoreLib implements ILib {
 
 		this.builtinFunc = Object.keys(this.methods)
 
-		for (const func of this.builtinFunc) {
+		for (const func of this.builtinFunc)
 			this.builtinHash[func] = true
-		}
 	}
 
 	public libEvalExpr(expr: any[], env: any[]): any {
@@ -101,28 +100,26 @@ class CoreLib implements ILib {
 
 	// (+ num1 num2 ...)
 	private add(expr: any[], env: any[]): number {
-		if (expr.length === 1) {
+		if (expr.length === 1)
 			return 0
-		}
 
 		if (expr.length === 2) {
-			const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+			const [num]: [number] = <[number]>this.inter.evalArgs(['number'], expr, env)
 
 			return num
 		}
 
 		if (expr.length === 3) {
-			const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+			const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 			return num1 + num2
 		}
 
 		let sum: number = 0
-		for (let i: number = 1; i < expr.length; i++) {
+		for (let i: number = 1; i < expr.length; ++i) {
 			const num = this.inter.evalExpr(expr[i], env)
-			if (typeof num !== 'number') {
+			if (typeof num !== 'number')
 				throw `Error: '+' requires a number. Given: ${num}`
-			}
 			sum += num
 		}
 
@@ -131,36 +128,34 @@ class CoreLib implements ILib {
 
 	// (- num1 num2)
 	private subtract(expr: any[], env: any[]): number {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 - num2
 	}
 
 	// (* num1 num2 ...)
 	private multiply(expr: any[], env: any[]): number {
-		if (expr.length === 1) {
+		if (expr.length === 1)
 			return 1
-		}
 
 		if (expr.length === 2) {
-			const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+			const [num]: [number] = <[number]>this.inter.evalArgs(['number'], expr, env)
 
 			return num
 		}
 
 		if (expr.length === 3) {
-			const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+			const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 			return num1 * num2
 		}
 
 		let res: number = 1
-		for (let i: number = 1; i < expr.length; i++) {
+		for (let i: number = 1; i < expr.length; ++i) {
 			const num = this.inter.evalExpr(expr[i], env)
 
-			if (typeof num !== 'number') {
+			if (typeof num !== 'number')
 				throw `Error: '*' requires a number. Given: ${num}`
-			}
 
 			res *= num
 		}
@@ -170,74 +165,73 @@ class CoreLib implements ILib {
 
 	// (/ num1 num2)
 	private divide(expr: any[], env: any[]): number {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
-		if (num2 === 0) {
+		if (num2 === 0)
 			throw 'Error: \'/\' division by zero.'
-		}
 
 		return num1 / num2
 	}
 
 	// (modulo num1 num2)
 	private modulo(expr: any[], env: any[]): number {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 % num2
 	}
 
 	// (zero? num)
 	private isZero(expr: any[], env: any[]): boolean {
-		const [num] = <[number]>this.inter.evalArgs(['number'], expr, env)
+		const [num]: [number] = <[number]>this.inter.evalArgs(['number'], expr, env)
 
 		return num === 0
 	}
 
 	// (= num1 num2)
 	private numEqual(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 === num2
 	}
 
 	// (> num1 num2)
 	private numGreater(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 > num2
 	}
 
 	// (< num1 num2)
 	private numLower(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 < num2
 	}
 
 	// (!= num1 num2)
 	private numNotEqual(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 !== num2
 	}
 
 	// (>= num1 num2)
 	private numGreaterOrEqual(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 >= num2
 	}
 
 	// (<= num1 num2)
 	private numLowerOrEqual(expr: any[], env: any[]): boolean {
-		const [num1, num2] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
+		const [num1, num2]: [number, number] = <[number, number]>this.inter.evalArgs(['number', 'number'], expr, env)
 
 		return num1 <= num2
 	}
 
 	// (eq? expr1 expr2)
 	private isEq(expr: any[], env: any[]): boolean {
-		const [obj1, obj2] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
+		const [obj1, obj2]: [any, any] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
 
 		return obj1 === obj2 ||
 			(Array.isArray(obj1) && obj1.length === 0 && Array.isArray(obj2) && obj2.length === 0)
@@ -245,7 +239,7 @@ class CoreLib implements ILib {
 
 	// (equal? expr1 expr2)
 	private isEqual(expr: any[], env: any[]): boolean {
-		const [obj1, obj2] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
+		const [obj1, obj2]: [any, any] = <[any, any]>this.inter.evalArgs(['any', 'any'], expr, env)
 
 		return Array.isArray(obj1) || Array.isArray(obj2)
 			? Printer.stringify(obj1) === Printer.stringify(obj2)
@@ -254,7 +248,7 @@ class CoreLib implements ILib {
 
 	// (not expr)
 	private not(expr: any[], env: any[]): boolean {
-		const [obj] = <[any]>this.inter.evalArgs(['any'], expr, env)
+		const [obj]: [any] = <[any]>this.inter.evalArgs(['any'], expr, env)
 
 		return !this.inter.isTrue(obj)
 	}

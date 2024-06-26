@@ -157,7 +157,7 @@ class Interpreter
 			? expr.slice(1)
 			: this.evalExpr(expr, env)
 
-		for (let i: number = 0; i < args.length; i++) {
+		for (let i: number = 0; i < args.length; ++i) {
 			const arg: any = args[i]
 			if (typeof arg === 'string')
 				args[i] = ['string', arg]
@@ -215,7 +215,7 @@ class Interpreter
 				throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`
 			}
 
-			for (let i: number = 0; i < params.length; i++) {
+			for (let i: number = 0; i < params.length; ++i) {
 				if (params[i] === '.') {
 					Env.add(params[i + 1], args.slice(i), 'arg', closureEnv)
 					break
@@ -701,7 +701,7 @@ class Interpreter
 		const datum : any   = expr[1]
 		const output: any[] = []
 
-		for (let i: number = 0; i < datum.length; i++) {
+		for (let i: number = 0; i < datum.length; ++i) {
 			if (i > 0 && isUnquote(datum[i - 1]))
 				output.push(this.evalExpr(datum[i], env))
 			else if (i > 0 && isUnquoteSplicing(datum[i - 1]))
@@ -739,7 +739,7 @@ class Interpreter
 		const maxLen     : number   = 500
 		const envDumpList: string[] = []
 
-		for (let i: number = Math.min(env.length - 1, 20); i > -1; i--) {
+		for (let i: number = Math.min(env.length - 1, 20); i > -1; --i) {
 			const envText : string = Printer.stringify(env[i][1])
 			const textLine: string = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText
 			envDumpList.push(`${env[i][0]} = ${textLine}`)

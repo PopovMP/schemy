@@ -22,7 +22,7 @@ class IoService
 				callback(xmlHttp.responseText)
 		}
 
-		function error(e: any)
+		function error(e: any): void
 		{
 			throw `Error: GET: ${url}, ${e.message}`
 		}

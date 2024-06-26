@@ -16,9 +16,8 @@ class StringLib implements ILib {
 		this.inter = interpreter
 
 		this.builtinFunc = Object.keys(this.methods)
-		for (const func of this.builtinFunc) {
+		for (const func of this.builtinFunc)
 			this.builtinHash[func] = true
-		}
 	}
 
 	public libEvalExpr(expr: any[], env: any[]): any | any[] {
@@ -27,9 +26,8 @@ class StringLib implements ILib {
 
 	// (string expr)
 	private string(expr: any[], _env: any[]): string {
-		if (expr.length !== 2) {
+		if (expr.length !== 2)
 			throw 'Error: \'string\' requires 1 argument. Given: ' + (expr.length - 1)
-		}
 
 		return expr[1]
 	}
@@ -43,28 +41,28 @@ class StringLib implements ILib {
 
 	// (string-length str)
 	private stringLength(expr: any[], env: any): number {
-		const [str] = this.inter.evalArgs(['string'], expr, env)
+		const [str]: [string] = <[string]>this.inter.evalArgs(['string'], expr, env)
 
 		return str.length
 	}
 
 	// (string->number expr)
 	private stringToNumber(expr: any[], env: any[]): number {
-		const [str] = this.inter.evalArgs(['string'], expr, env)
+		const [str]: [string] = <[string]>this.inter.evalArgs(['string'], expr, env)
 
 		return Number(str)
 	}
 
 	// (string->uppercase expr)
 	private stringToUppercase(expr: any[], env: any[]): string {
-		const [str] = this.inter.evalArgs(['string'], expr, env)
+		const [str]: [string] = <[string]>this.inter.evalArgs(['string'], expr, env)
 
 		return str.toUpperCase()
 	}
 
 	// (string->downcase expr)
 	private stringToDowncase(expr: any[], env: any[]): string {
-		const [str] = this.inter.evalArgs(['string'], expr, env)
+		const [str]: [string] = <[string]>this.inter.evalArgs(['string'], expr, env)
 
 		return str.toLowerCase()
 	}

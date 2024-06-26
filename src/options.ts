@@ -1,21 +1,15 @@
 class Options
 {
-	public printer: Function
-	public libs: string[]
-	public extContext: any
-	public extFunctions: any
+	public printer     : Function = console.log
+	public libs        : string[] = ['core-lib', 'ext-lib', 'list-lib', 'string-lib']
+	public extContext  : any      = this
+	public extFunctions: any      = {}
 
-	constructor()
-	{
-		this.printer      = console.log
-		this.libs         = ['core-lib', 'ext-lib', 'list-lib', 'string-lib']
-		this.extContext   = this
-		this.extFunctions = {}
-	}
+	constructor() {}
 
 	public static parse(options: any): Options
 	{
-		const evalOptions = new Options()
+		const evalOptions: Options = new Options()
 
 		if (typeof options.printer === 'function')
 			evalOptions.printer = options.printer

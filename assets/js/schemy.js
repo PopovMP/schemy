@@ -3,7 +3,7 @@ class Env {
     static add(symbol, value, modifier, env) {
         if (value === undefined)
             throw `Error: Cannot set unspecified value to identifier: ${symbol}.`;
-        for (let i = env.length - 1; i > -1; i--) {
+        for (let i = env.length - 1; i > -1; --i) {
             const cellKey = env[i][0];
             if (cellKey === '#scope')
                 break;
@@ -25,7 +25,7 @@ class Env {
         throw `Error: Identifier is not defined: ${symbol}`;
     }
     static lookup(symbol, env, libs) {
-        for (let i = env.length - 1; i > -1; i--) {
+        for (let i = env.length - 1; i > -1; --i) {
             if (symbol === env[i][0]) {
                 const val = env[i][1];
                 if (val === null)
@@ -39,7 +39,7 @@ class Env {
         throw `Error: Unbound identifier: ${symbol}`;
     }
     static has(symbol, env, libs) {
-        for (let i = env.length - 1; i > -1; i--)
+        for (let i = env.length - 1; i > -1; --i)
             if (symbol === env[i][0])
                 return true;
         for (const lib of libs)
@@ -174,7 +174,7 @@ class Interpreter {
         const args = Array.isArray(expr) && expr[0] === 'list'
             ? expr.slice(1)
             : this.evalExpr(expr, env);
-        for (let i = 0; i < args.length; i++) {
+        for (let i = 0; i < args.length; ++i) {
             const arg = args[i];
             if (typeof arg === 'string')
                 args[i] = ['string', arg];
@@ -216,7 +216,7 @@ class Interpreter {
             else if (argsCount !== paramsCount) {
                 throw `Error: Wrong count of arguments of proc ${procId}. Required ${paramsCount} but given: ${argsCount}`;
             }
-            for (let i = 0; i < params.length; i++) {
+            for (let i = 0; i < params.length; ++i) {
                 if (params[i] === '.') {
                     Env.add(params[i + 1], args.slice(i), 'arg', closureEnv);
                     break;
@@ -530,7 +530,7 @@ class Interpreter {
         const isUnquoteSplicing = (obj) => obj === '@';
         const datum = expr[1];
         const output = [];
-        for (let i = 0; i < datum.length; i++) {
+        for (let i = 0; i < datum.length; ++i) {
             if (i > 0 && isUnquote(datum[i - 1]))
                 output.push(this.evalExpr(datum[i], env));
             else if (i > 0 && isUnquoteSplicing(datum[i - 1]))
@@ -555,7 +555,7 @@ class Interpreter {
         this.isDebug = true;
         const maxLen = 500;
         const envDumpList = [];
-        for (let i = Math.min(env.length - 1, 20); i > -1; i--) {
+        for (let i = Math.min(env.length - 1, 20); i > -1; --i) {
             const envText = Printer.stringify(env[i][1]);
             const textLine = envText.length > maxLen ? envText.slice(0, maxLen) + '...' : envText;
             envDumpList.push(`${env[i][0]} = ${textLine}`);
@@ -642,7 +642,7 @@ class IoService {
 }
 class LibManager {
     static getBuiltinLibs(libList, inter) {
-        return libList.map(lib => LibManager.createLib(lib, inter));
+        return libList.map((lib) => LibManager.createLib(lib, inter));
     }
     static createLib(libName, inter) {
         switch (libName) {
@@ -703,16 +703,11 @@ class LibManager {
     }
 }
 class Options {
-    printer;
-    libs;
-    extContext;
-    extFunctions;
-    constructor() {
-        this.printer = console.log;
-        this.libs = ['core-lib', 'ext-lib', 'list-lib', 'string-lib'];
-        this.extContext = this;
-        this.extFunctions = {};
-    }
+    printer = console.log;
+    libs = ['core-lib', 'ext-lib', 'list-lib', 'string-lib'];
+    extContext = this;
+    extFunctions = {};
+    constructor() { }
     static parse(options) {
         const evalOptions = new Options();
         if (typeof options.printer === 'function')
@@ -745,8 +740,7 @@ class Parser {
         const codeList = this.tokenize(fixedText);
         this.checkMatchingParens(codeList);
         const abbrevResolved = this.expandAbbreviations(codeList, abbrevList);
-        const ilTree = this.nest(abbrevResolved);
-        return ilTree;
+        return this.nest(abbrevResolved);
     }
     expandAbbreviations(codeList, abbrevList) {
         if (abbrevList.length === 0)
@@ -772,15 +766,15 @@ class Parser {
                         : lexeme;
             output.push(value);
         };
-        for (let i = 0, lexeme = ''; i < code.length; i++) {
+        for (let i = 0, lexeme = ''; i < code.length; ++i) {
             const ch = code[i];
             if (isStringChar(ch)) {
                 const chars = [];
-                for (i++; isInFile(i); i++) {
+                for (++i; isInFile(i); ++i) {
                     if (isStringChar(code[i])) {
                         if (isStringChar(code[i + 1])) {
                             chars.push('"');
-                            i++;
+                            ++i;
                             continue;
                         }
                         break;
@@ -791,15 +785,15 @@ class Parser {
                 continue;
             }
             if (this.isLineComment(ch)) {
-                do {
-                    i++;
-                } while (isInFile(i) && isInLine(i));
+                do
+                    ++i;
+                while (isInFile(i) && isInLine(i));
                 continue;
             }
             if (isOpenRangeComment(i)) {
-                do {
-                    i++;
-                } while (!isCloseRangeComment(i));
+                do
+                    ++i;
+                while (!isCloseRangeComment(i));
                 continue;
             }
             if (this.isWhiteSpace(ch)) {
@@ -823,12 +817,12 @@ class Parser {
     }
     expandSymbolAbbreviation(input, abbrevChar, fullForm) {
         const output = [];
-        for (let i = 0; i < input.length; i++) {
+        for (let i = 0; i < input.length; ++i) {
             const curr = input[i];
             const next = input[i + 1];
             if (curr === abbrevChar && !this.isOpenParen(next) && next !== abbrevChar) {
                 output.push('(', fullForm, next, ')');
-                i++;
+                ++i;
             }
             else {
                 output.push(curr);
@@ -848,9 +842,9 @@ class Parser {
             }
             output.push(curr);
             if (flag && this.isOpenParen(curr))
-                paren++;
+                ++paren;
             if (flag && this.isCloseParen(curr))
-                paren--;
+                --paren;
             if (flag && paren === 0) {
                 output.push(')');
                 flag = false;
@@ -881,36 +875,36 @@ class Parser {
         let curly = 0;
         let square = 0;
         let round = 0;
-        for (let i = 0; i < codeList.length; i++) {
+        for (let i = 0; i < codeList.length; ++i) {
             if (codeList[i - 1] === '(' && codeList[i] === 'string')
                 i += 2;
             switch (codeList[i]) {
                 case '(':
-                    round++;
+                    ++round;
                     break;
                 case '[':
-                    square++;
+                    ++square;
                     break;
                 case '{':
-                    curly++;
+                    ++curly;
                     break;
                 case ')':
-                    round--;
+                    --round;
                     break;
                 case ']':
-                    square--;
+                    --square;
                     break;
                 case '}':
-                    curly--;
+                    --curly;
                     break;
             }
         }
         if (curly !== 0)
-            throw 'Unmatching curly braces!';
+            throw 'Non-matching curly braces!';
         if (square !== 0)
-            throw 'Unmatching square braces!';
+            throw 'Non-matching square braces!';
         if (round !== 0)
-            throw 'Unmatching round braces!';
+            throw 'Non-matching round braces!';
     }
 }
 if (typeof module === 'object')
@@ -921,7 +915,8 @@ class Printer {
         const isOpenParen = (c) => ['{', '[', '('].includes(c);
         const isQuoteAbbrev = (c) => c === '\'';
         const lastChar = () => texts[texts.length - 1][texts[texts.length - 1].length - 1];
-        const space = () => texts[texts.length - 1].length === 0 || isOpenParen(lastChar()) || isQuoteAbbrev(lastChar()) ? '' : ' ';
+        const space = () => texts[texts.length - 1].length === 0 ||
+            isOpenParen(lastChar()) || isQuoteAbbrev(lastChar()) ? '' : ' ';
         function printClosure(closure) {
             texts.push('lambda (');
             loop(closure[1]);
@@ -1043,9 +1038,8 @@ class CoreLib {
     constructor(interpreter) {
         this.inter = interpreter;
         this.builtinFunc = Object.keys(this.methods);
-        for (const func of this.builtinFunc) {
+        for (const func of this.builtinFunc)
             this.builtinHash[func] = true;
-        }
     }
     libEvalExpr(expr, env) {
         return this.methods[expr[0]].call(this, expr, env);
@@ -1079,9 +1073,8 @@ class CoreLib {
         return Array.isArray(obj);
     }
     add(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             return 0;
-        }
         if (expr.length === 2) {
             const [num] = this.inter.evalArgs(['number'], expr, env);
             return num;
@@ -1091,11 +1084,10 @@ class CoreLib {
             return num1 + num2;
         }
         let sum = 0;
-        for (let i = 1; i < expr.length; i++) {
+        for (let i = 1; i < expr.length; ++i) {
             const num = this.inter.evalExpr(expr[i], env);
-            if (typeof num !== 'number') {
+            if (typeof num !== 'number')
                 throw `Error: '+' requires a number. Given: ${num}`;
-            }
             sum += num;
         }
         return sum;
@@ -1105,9 +1097,8 @@ class CoreLib {
         return num1 - num2;
     }
     multiply(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             return 1;
-        }
         if (expr.length === 2) {
             const [num] = this.inter.evalArgs(['number'], expr, env);
             return num;
@@ -1117,20 +1108,18 @@ class CoreLib {
             return num1 * num2;
         }
         let res = 1;
-        for (let i = 1; i < expr.length; i++) {
+        for (let i = 1; i < expr.length; ++i) {
             const num = this.inter.evalExpr(expr[i], env);
-            if (typeof num !== 'number') {
+            if (typeof num !== 'number')
                 throw `Error: '*' requires a number. Given: ${num}`;
-            }
             res *= num;
         }
         return res;
     }
     divide(expr, env) {
         const [num1, num2] = this.inter.evalArgs(['number', 'number'], expr, env);
-        if (num2 === 0) {
+        if (num2 === 0)
             throw 'Error: \'/\' division by zero.';
-        }
         return num1 / num2;
     }
     modulo(expr, env) {
@@ -1233,9 +1222,8 @@ class ListLib {
         return this.methods[expr[0]].call(this, expr, env);
     }
     list(expr, env) {
-        if (expr.length === 1) {
+        if (expr.length === 1)
             return [];
-        }
         return this.inter.mapExprList(expr.slice(1), env);
     }
     cons(expr, env) {
@@ -1248,65 +1236,56 @@ class ListLib {
     }
     car(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length === 0) {
+        if (!Array.isArray(obj) || obj.length === 0)
             throw `Error in 'car': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[0];
     }
     cdr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length === 0) {
+        if (!Array.isArray(obj) || obj.length === 0)
             throw `Error in 'cdr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj.slice(1);
     }
     caar(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
+        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0)
             throw `Error in 'caar': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[0][0];
     }
     cdar(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0) {
+        if (!Array.isArray(obj) || !Array.isArray(obj[0]) || obj[0].length === 0)
             throw `Error in 'cdar': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[0].slice(1);
     }
     cadr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length < 2) {
+        if (!Array.isArray(obj) || obj.length < 2)
             throw `Error in 'cadr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[1];
     }
     cddr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length < 2) {
+        if (!Array.isArray(obj) || obj.length < 2)
             throw `Error in 'cddr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj.slice(2);
     }
     caddr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length < 3) {
+        if (!Array.isArray(obj) || obj.length < 3)
             throw `Error in 'caddr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[2];
     }
     cadddr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length < 4) {
+        if (!Array.isArray(obj) || obj.length < 4)
             throw `Error in 'cadddr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[3];
     }
     caddddr(expr, env) {
         const [obj] = this.inter.evalArgs(['list'], expr, env);
-        if (!Array.isArray(obj) || obj.length < 5) {
+        if (!Array.isArray(obj) || obj.length < 5)
             throw `Error in 'caddddr': Incorrect list structure: ${Printer.stringify(obj)}`;
-        }
         return obj[4];
     }
     append(expr, env) {
@@ -1323,11 +1302,7 @@ class ListLib {
     }
     makeList(expr, env) {
         const [size, fill] = this.inter.evalArgs(['number', 'scalar'], expr, env);
-        const res = [];
-        for (let i = 0; i < size; i++) {
-            res.push(fill);
-        }
-        return res;
+        return new Array(size).fill(fill);
     }
     listTail(expr, env) {
         const [lst, k] = this.inter.evalArgs(['list', 'number'], expr, env);
@@ -1358,17 +1333,15 @@ class StringLib {
     constructor(interpreter) {
         this.inter = interpreter;
         this.builtinFunc = Object.keys(this.methods);
-        for (const func of this.builtinFunc) {
+        for (const func of this.builtinFunc)
             this.builtinHash[func] = true;
-        }
     }
     libEvalExpr(expr, env) {
         return this.methods[expr[0]].call(this, expr, env);
     }
     string(expr, _env) {
-        if (expr.length !== 2) {
+        if (expr.length !== 2)
             throw 'Error: \'string\' requires 1 argument. Given: ' + (expr.length - 1);
-        }
         return expr[1];
     }
     stringAppend(expr, env) {

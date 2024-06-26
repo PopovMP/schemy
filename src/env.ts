@@ -5,8 +5,8 @@ class Env
 		if (value === undefined)
 			throw `Error: Cannot set unspecified value to identifier: ${symbol}.`
 
-		for (let i: number = env.length - 1; i > -1; i--) {
-			const cellKey = env[i][0]
+		for (let i: number = env.length - 1; i > -1; --i) {
+			const cellKey: string = env[i][0]
 
 			if (cellKey === '#scope')
 				break
@@ -36,14 +36,14 @@ class Env
 
 	public static lookup(symbol: string, env: any[], libs: any[]): any
 	{
-		for (let i: number = env.length - 1; i > -1; i--) {
+		for (let i: number = env.length - 1; i > -1; --i) {
 			if (symbol === env[i][0]) {
 				const val: any = env[i][1]
 
 				if (val === null)
 					throw `Error: Unspecified value of identifier: ${symbol}`
 
-				return  val
+				return val
 			}
 		}
 
@@ -56,7 +56,7 @@ class Env
 
 	public static has(symbol: string, env: any[], libs: any[]): boolean
 	{
-		for (let i: number = env.length - 1; i > -1; i--)
+		for (let i: number = env.length - 1; i > -1; --i)
 			if (symbol === env[i][0])
 				return true
 
@@ -69,7 +69,7 @@ class Env
 
 	public static clear(tag: string, env: any[]): void
 	{
-		let cell: [string, any]
+		let cell: [string, any, string]
 		do
 			cell = env.pop()
 		while (cell[0] !== tag)
